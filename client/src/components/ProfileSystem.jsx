@@ -167,7 +167,7 @@ const ProfileSystem = ({ onClose }) => {
   );
 
   return (
-    <div className="p-6">
+    <div>
       {alert.show && (
         <div className="fixed inset-x-0 top-4 flex justify-center z-50">
           <div className="bg-gray-900 rounded-lg p-4 border border-gray-700 flex items-center space-x-2">

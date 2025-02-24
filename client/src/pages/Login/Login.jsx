@@ -41,7 +41,7 @@ function Login({ onSuccess, onRegisterClick }) {
   };
 
   return (
-    <div className="min-h-auto w-full max-w-md overflow-hidden bg-dark rounded-2xl shadow-lg">
+    <div className="min-h-auto w-full max-w-md overflow-hidden bg-dark rounded-2xl shadow-[0_0_25px_5px_rgba(255,215,0,0.7)]">
       <div className="relative">
         {/* Decorative Elements */}
         <div className="absolute inset-0 transform rotate-12 rounded-3xl blur-3xl" />
@@ -115,7 +115,7 @@ function Login({ onSuccess, onRegisterClick }) {
               type="submit"
               disabled={isLoading}
               className="w-full py-2.5 bg-red-900 text-white text-sm font-semibold
-                       rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200
+                       rounded-xl hover:from-yellow-100 hover:to-yellow-700 transition-all duration-200
                        focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-1 
                        focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed
                        flex items-center justify-center gap-2"

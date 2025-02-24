@@ -213,15 +213,15 @@ function Navbar() {
 
       {/* Profile Modal */}
       {showProfileModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-900 rounded-lg p-6 max-w-4xl w-full relative">
-            <button
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-hidden">
+          <div className="bg-gray-900 rounded-lg p-6 max-w-4xl w-full relative mt-100 overflow-y-auto">
+            {/* <button
               onClick={() => setShowProfileModal(false)}
               className="absolute top-2 right-2 text-gray-400 hover:text-gray-300"
             >
               <X size={20} />
-            </button>
-            <ProfileSystem onClose={() => setShowProfileModal(false)} />
+            </button> */}
+            <ProfileSystem onClose={() => setShowProfileModal(false)}  />
           </div>
         </div>
       )}
