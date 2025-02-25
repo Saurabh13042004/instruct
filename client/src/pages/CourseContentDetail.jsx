@@ -6,7 +6,7 @@ import Modal from "react-modal";
 import * as pdfjsLib from 'pdfjs-dist';
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
-
+import { Link } from 'react-router-dom';
 // Set up PDF.js worker URL with dynamic version
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -30,6 +30,15 @@ const CourseContentDetail = () => {
   const [isRendering, setIsRendering] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null);
   const [showAudioPlayer, setShowAudioPlayer] = useState(false);
+  // Add searchTerm state at the top with other state declarations
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Add this filter function before the return statement
+  const filteredChapters = subject?.chapters.filter(chapter =>
+    chapter.chapterName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Replace the existing Chapters Grid section with this:
 
   const handleOpenProtectedResource = async (resourceUrl, type) => {
     try {
@@ -155,7 +164,7 @@ const CourseContentDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="min-h-screen w-screen  flex items-center justify-center bg-gray-900">
         <p className="text-white text-xl">Loading subject content...</p>
       </div>
     );
@@ -170,66 +179,160 @@ const CourseContentDetail = () => {
   }
 
   return (
-    <div className="min-h-screen w-screen  text-white pt-250 p-8">
+    <div className="min-h-screen  w-screen pt-150 text-white p-8">
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8 flex items-center justify-between">
-        <h1 className="text-4xl font-bold">{subject.subjectName}</h1>
+      <div className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
         <button
           onClick={() => navigate(-1)}
-          className="bg-red-600 hover:bg-red-700 transition px-4 py-2 rounded"
+          className="bg-opacity-10 hover:bg-opacity-20 bg-dark text-white px-4 py-2 rounded-lg 
+                    transition-all duration-300 flex items-center gap-2 hover:translate-x-[-4px]"
         >
           ← Back
         </button>
+        <h1 className="text-4xl font-bold text-white text-shadow">{subject.subjectName}</h1>
+      </div>
+
+      <div className="max-w-7xl mx-auto mb-8">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search chapters..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full max-w-md px-4 py-3 pl-10 rounded-lg bg-white bg-opacity-10 
+                     border border-white border-opacity-20 text-gray-800 placeholder-gray-500
+                     focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-20 
+                     transition-all duration-300 caret-gray-800"
+          />
+          <svg
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 
+                       text-gray-400 hover:text-white transition-colors"
+            >
+              ×
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Chapters Grid */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-  {subject.chapters.map((chapter, index) => (
-    <div
-      key={index}
-      className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden transition-all duration-300 ease-in-out cursor-pointer"
-      onClick={() => toggleChapter(index)}
-    >
-      <div className="p-4 flex justify-between items-center">
-        <span className="text-lg font-medium text-white">{chapter.chapterName}</span>
-        <span className="text-2xl text-white">
-          {activeChapters[index] ? "-" : "+"}
-        </span>
-      </div>
-      {activeChapters[index] && (
-        <div className="px-4 pb-4 border-t border-gray-700 flex flex-col space-y-3">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpenProtectedResource(chapter.pdfLink, "pdf");
-            }}
-            className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 transition px-4 py-2 rounded-lg text-white font-medium shadow-md"
+ {/* Chapters Grid */}
+<div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  {filteredChapters?.length > 0 ? (
+    filteredChapters.map((chapter, index) => (
+      <div key={index} className="relative">
+        <div className="card bg-gradient-to-br from-gray-800 to-gray-900
+                       border border-white/10 rounded-2xl overflow-visible transition-all 
+                       duration-300 hover:border-white/20 hover:translate-y-[-4px]">
+          {/* Card Header */}
+          <div
+            onClick={() => toggleChapter(index)}
+            className="p-6 cursor-pointer"
           >
-            <FileText size={22} />
-            <span>PDF</span>
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpenProtectedResource(chapter.audioLink, "audio");
-            }}
-            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-light transition px-4 py-2 rounded-lg text-white font-medium shadow-md"
-          >
-            <Music size={22} />
-            <span>Audio Book</span>
-          </button>
-          <button className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 transition px-4 py-2 rounded-lg text-white font-medium shadow-md">
-            <PlayCircle size={22} />
-            <span>Play Video</span>
-          </button>
-          <button className="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 transition px-4 py-2 rounded-lg text-white font-medium shadow-md">
-            <HelpCircle size={22} />
-            <span>Quiz</span>
-          </button>
+            <div className="text-4xl mb-4 transition-transform duration-300 
+                           transform hover:scale-110">
+              {index % 2 === 0 ? '📚' : '🎯'}
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-2">
+              {chapter.chapterName}
+            </h3>
+          </div>
         </div>
-      )}
+
+        {/* Card Content - Expandable Section */}
+        <div 
+          className={`mt-2 transition-all duration-500 ease-in-out origin-top
+                     ${activeChapters[index] ? 'opacity-100 transform scale-y-100' : 'opacity-0 transform scale-y-0 h-0'}`}
+        >
+          <div className="space-y-2 bg-gray-800/50 rounded-xl p-4 backdrop-blur-sm border border-white/10">
+            {/* PDF Option */}
+            <div 
+              onClick={() => handleOpenProtectedResource(chapter.pdfLink, "pdf")}
+              className="transform transition-all duration-300 hover:translate-x-2
+                       bg-black/20 rounded-lg cursor-pointer"
+            >
+              <div className="p-4 hover:bg-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  <span>Notes PDF</span>
+                </div>
+                <span className="px-2 py-1 text-sm bg-white/20 rounded-full">
+                  View
+                </span>
+              </div>
+            </div>
+
+            {/* Audio Option */}
+            <div 
+              onClick={() => handleOpenProtectedResource(chapter.audioLink, "audio")}
+              className="transform transition-all duration-300 hover:translate-x-2
+                       bg-black/20 rounded-lg cursor-pointer"
+            >
+              <div className="p-4 hover:bg-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Music className="w-5 h-5" />
+                  <span>Audio Book</span>
+                </div>
+                <span className="px-2 py-1 text-sm bg-white/20 rounded-full">
+                  Play
+                </span>
+              </div>
+            </div>
+
+            {/* Video Option */}
+            <div className="transform transition-all duration-300 hover:translate-x-2
+                         bg-black/20 rounded-lg cursor-pointer">
+              <div className="p-4 hover:bg-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <PlayCircle className="w-5 h-5" />
+                  <span>Video Lecture</span>
+                </div>
+                <span className="px-2 py-1 text-sm bg-white/20 rounded-full">
+                  Watch
+                </span>
+              </div>
+            </div>
+
+            {/* Quiz Option */}
+            <div className="transform transition-all duration-300 hover:translate-x-2
+                         bg-black/20 rounded-lg cursor-pointer">
+              <div className="p-4 hover:bg-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <HelpCircle className="w-5 h-5" />
+                  <span>Practice Quiz</span>
+                </div>
+                <span className="px-2 py-1 text-sm bg-white/20 rounded-full">
+                <Link to={`/course-content-detail/${courseId}/${subjectId}/quiz`}>
+                  Start
+                </Link>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    ))
+  ) : (
+    <div className="col-span-full text-center py-8">
+      <p className="text-gray-400 text-lg">
+        No chapters found matching "{searchTerm}"
+      </p>
     </div>
-  ))}
+  )}
 </div>
 
       {/* PDF Viewer Modal */}

@@ -41,17 +41,17 @@ function Login({ onSuccess, onRegisterClick }) {
   };
 
   return (
-    <div className="min-h-auto w-full max-w-md overflow-hidden bg-dark rounded-2xl shadow-[0_0_25px_5px_rgba(255,215,0,0.7)]">
+    <div className="min-h-auto w-full max-w-md overflow-hidden bg-dark rounded-2xl shadow-[0_0_25px_5px_rgba(76,29,149,0.15)]">
       <div className="relative">
         {/* Decorative Elements */}
-        <div className="absolute inset-0 transform rotate-12 rounded-3xl blur-3xl" />
+        <div className="absolute inset-0 transform rotate-12 rounded-3xl " />
         
-        <div className="relative p-8 rounded-2xl shadow-2xl border border-gray-700/50 bg-gray-800">
+        <div className="relative p-8 rounded-2xl shadow-2xl border border-gray-800">
           <div className="mb-8 text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-yellow-100 to-yellow-800 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <User size={32} className="text-white" />
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-900 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <User size={32} className="text-gray-100" />
             </div>
-            <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-400">
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
               Welcome Back
             </h1>
             <p className="text-gray-400 mt-2">
@@ -76,10 +76,10 @@ function Login({ onSuccess, onRegisterClick }) {
                     name="email"
                     onChange={handleChange}
                     value={form.email}
-                    className="w-full pl-10 pr-4 py-2.5 bg-gray-900/50 border border-gray-700 text-gray-100 rounded-xl
-                             focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
+                             focus:outline-none focus:ring-2 focus:ring-purple-500/70 focus:border-purple-500
                              placeholder-gray-500 transition-all duration-200"
-                    placeholder="___Enter your email"
+                    placeholder="Enter your email"
                     required
                   />
                 </div>
@@ -90,7 +90,7 @@ function Login({ onSuccess, onRegisterClick }) {
                   Password
                 </label>
                 <div className="relative">
-                { form.password === "" &&(
+                { form.password === "" && (
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Lock size={18} className="text-gray-500" />
                   </div>
@@ -101,10 +101,10 @@ function Login({ onSuccess, onRegisterClick }) {
                     name="password"
                     onChange={handleChange}
                     value={form.password}
-                    className="w-full pl-10 pr-4 py-2.5 bg-gray-900/50 border border-gray-700 text-gray-100 rounded-xl
-                             focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
+                             focus:outline-none focus:ring-2 focus:ring-purple-500/70 focus:border-purple-500
                              placeholder-gray-500 transition-all duration-200"
-                    placeholder="___Enter your password"
+                    placeholder="Enter your password"
                     required
                   />
                 </div>
@@ -114,14 +114,14 @@ function Login({ onSuccess, onRegisterClick }) {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 bg-red-900 text-white text-sm font-semibold
-                       rounded-xl hover:from-yellow-100 hover:to-yellow-700 transition-all duration-200
+              className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-purple-800 text-white text-sm font-semibold
+                       rounded-xl hover:from-purple-700 hover:to-purple-900 transition-all duration-200
                        focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-1 
-                       focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed
+                       focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed
                        flex items-center justify-center gap-2"
             >
               {isLoading ? (
-                <div className="w-5 h-5 border-2 bg-red-900 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
                   <LogIn size={18} />
@@ -132,17 +132,18 @@ function Login({ onSuccess, onRegisterClick }) {
 
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-700"></div>
+                <div className="w-full border-t border-gray-700/50"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-800 text-gray-400">Or continue with</span>
+                <span className="px-2 bg-gray-900 text-gray-400">Or continue with</span>
               </div>
             </div>
 
             <a
               href="http://localhost:5000/api/auth/google"
-              className="w-full py-2.5 bg-white text-gray-900 text-sm font-semibold rounded-xl
-                       hover:bg-gray-100 transition-colors duration-200 flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-gray-800 text-gray-200 text-sm font-semibold rounded-xl
+                       border border-gray-700 hover:bg-gray-700 transition-colors duration-200 
+                       flex items-center justify-center gap-2"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -168,13 +169,13 @@ function Login({ onSuccess, onRegisterClick }) {
             <div className="mt-6 flex items-center justify-between text-sm text-gray-400">
               <Link
                 to="/forgot-password"
-                className="hover:text-purple-400 transition-colors duration-200"
+                className="text-purple-400 hover:text-purple-300 transition-colors duration-200"
               >
                 Forgot password?
               </Link>
               <Link
                 onClick={onRegisterClick}
-                className="hover:text-purple-400 transition-colors duration-200"
+                className="text-purple-400 hover:text-purple-300 transition-colors duration-200"
               >
                 Create an account
               </Link>

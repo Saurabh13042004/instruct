@@ -61,11 +61,10 @@ const ProfileSystem = ({ onClose }) => {
       otpRefs[index - 1].current?.focus();
     }
   };
-
   const Modal = ({ title, children, onClose }) => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-900 rounded-lg p-6 max-w-md w-full border border-gray-700">
-        <div className="flex justify-between items-center mb-4">
+      <div className="bg-gray-900 rounded-lg p-6 max-w-md w-full border border-gray-700 max-h-[90vh] overflow-y-auto"> {/* Added max-height and overflow */}
+        <div className="flex justify-between items-center mb-4 sticky top-0 bg-gray-900 py-2"> {/* Added sticky header */}
           <h3 className="text-lg font-semibold text-gray-100">{title}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-300">
             <X size={20} />
@@ -75,7 +74,6 @@ const ProfileSystem = ({ onClose }) => {
       </div>
     </div>
   );
-
   const handleVerifyOTP = () => {
     const otp = verificationCode.join('');
     if (otp === '123456') { // Demo verification code
@@ -167,7 +165,7 @@ const ProfileSystem = ({ onClose }) => {
   );
 
   return (
-    <div>
+    <div className="bg-gray-900 p-8 rounded-lg"> {/* Changed from just div */}
       {alert.show && (
         <div className="fixed inset-x-0 top-4 flex justify-center z-50">
           <div className="bg-gray-900 rounded-lg p-4 border border-gray-700 flex items-center space-x-2">
@@ -181,9 +179,9 @@ const ProfileSystem = ({ onClose }) => {
         </div>
       )}
 
-      <div className="max-w-2xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-xl font-semibold text-gray-100">Profile details</h1>
+<div className="max-w-2xl mx-auto">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-xl font-semibold text-gray-100">Profile details</h1>
           {/* Use the onClose prop to allow closing the modal */}
           {onClose && (
             <button onClick={onClose} className="text-gray-400 hover:text-gray-300">

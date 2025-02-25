@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import API from "../../api";
 import axios from "axios";
 import { Lock } from "lucide-react";
+import { Star, StarHalf } from 'lucide-react';
+
 
 // Helper to get Razorpay key from environment variables (for Vite/CRA)
 const getRazorpayKey = () => {
@@ -18,6 +20,10 @@ function CourseDetail() {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [purchased, setPurchased] = useState(false);
+  const [rating, setRating] = useState(0);
+const [feedback, setFeedback] = useState('');
+const [reviews, setReviews] = useState([]);
+const [hoveredRating, setHoveredRating] = useState(0);
 
   // New states for promocode functionality.
   const [promoCode, setPromoCode] = useState("");
@@ -83,7 +89,150 @@ function CourseDetail() {
       alert("There was an error processing your purchase.");
     }
   };
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await API.get(`/courses/${courseId}/reviews`);
+        setReviews(response.data.reviews);
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+      }
+    };
+    fetchReviews();
+  }, [courseId]);
 
+  const handleSubmitReview = async () => {
+    try {
+      const response = await API.post(
+        `/courses/${courseId}/reviews`,
+        { rating, feedback },
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
+      setReviews([...reviews, response.data.review]);
+      setRating(0);
+      setFeedback('');
+      alert('Review submitted successfully!');
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert('Failed to submit review');
+    }
+  };
+
+
+  const StarRating = ({ rating, hoverable = false, onRatingChange = null }) => {
+    return (
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            className={`text-2xl ${
+              star <= (hoverable ? hoveredRating || rating : rating)
+                ? 'text-yellow-400'
+                : 'text-gray-400'
+            }`}
+            onMouseEnter={() => hoverable && setHoveredRating(star)}
+            onMouseLeave={() => hoverable && setHoveredRating(0)}
+            onClick={() => onRatingChange && onRatingChange(star)}
+          >
+            <Star className="w-6 h-6" />
+          </button>
+        ))}
+      </div>
+    );
+  };
+
+
+//   const promoCodeSection = `
+//   <div className="promo-code-section mt-4">
+//     <input 
+//       type="text" 
+//       value={promoCode} 
+//       onChange={(e) => setPromoCode(e.target.value)} 
+//       placeholder="Enter promo code" 
+//       className="p-2 rounded bg-gray-800 border border-gray-600 text-white 
+//                 transition-all duration-300 focus:outline-none focus:border-[#b16901]" 
+//     />
+//     <button 
+//       onClick={handleApplyPromo} 
+//       className="ml-2 bg-[#b16901] text-white px-3 py-2 rounded 
+//                 hover:bg-[#c27811] transition-transform duration-300 hover:scale-105"
+//     >
+//       Apply
+//     </button>
+//     {promoMessage && (
+//       <p 
+//         className={`mt-2 text-sm ${
+//           promoApplied ? "text-green-400" : "text-red-400"
+//         }`}
+//         style={{ animation: "fadeIn 0.5s ease-in-out" }}
+//       >
+//         {promoMessage}
+//       </p>
+//     )}
+//   </div>
+// `;
+
+
+
+const reviewSection = `
+  {purchased && (
+    <div className="row mt-8">
+      <div className="col-12">
+        <div className="bg-gray-800 p-6 rounded-lg">
+          <h3 className="text-xl font-semibold mb-4 text-white">Leave a Review</h3>
+          <div className="mb-4">
+            <label className="block text-gray-300 mb-2">Rating</label>
+            <StarRating 
+              rating={rating} 
+              hoverable={true} 
+              onRatingChange={setRating} 
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-300 mb-2">Feedback</label>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              className="w-full p-2 rounded bg-gray-700 border border-gray-600 
+                        text-white focus:outline-none focus:border-[#b16901]"
+              rows="4"
+            /> </div>
+          <button
+            onClick={handleSubmitReview}
+            className="bg-[#b16901] text-white px-4 py-2 rounded
+                     hover:bg-[#c27811] transition-transform duration-300 hover:scale-105"
+          >
+            Submit Review
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+
+  <div className="row mt-8">
+    <div className="col-12">
+      <div className="bg-gray-800 p-6 rounded-lg">
+        <h3 className="text-xl font-semibold mb-4 text-white">Course Reviews</h3>
+        {reviews.length === 0 ? (
+          <p className="text-gray-400">No reviews yet</p>
+        ) : (
+          reviews.map((review, index) => (
+                      reviews.map((review, index) => (
+            <div key={index} className="mb-4 border-b border-gray-700 pb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <StarRating rating={review.rating} />
+                <span className="text-gray-300">
+                  {new Date(review.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+              <p className="text-gray-300">{review.feedback}</p>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  </div>
+`;
   // Fetch course details.
   useEffect(() => {
     const token = localStorage.getItem("token");
