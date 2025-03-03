@@ -17,6 +17,7 @@ const customModalStyles = {
     right: 0,
     bottom: 0,
     backgroundColor: "rgba(0, 0, 0, 0.75)",
+    backdropFilter: "blur(5px)",
     zIndex: 1000,
     display: "flex",
     alignItems: "center",
@@ -24,7 +25,7 @@ const customModalStyles = {
   },
   content: {
     position: "relative",
-    background: "transparent",
+    background: "transparent", 
     border: "none",
     borderRadius: "8px",
     padding: 0,
@@ -37,6 +38,7 @@ const customModalStyles = {
     width: "90%",
   },
 };
+
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);

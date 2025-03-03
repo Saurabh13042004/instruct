@@ -11,13 +11,21 @@ import {
   CreditCard,
   Home,
   Settings,
-  Bell
+  Bell,
+  Brain,
 } from "lucide-react";
+import { ChevronDown, Book, FileText, ArrowLeft, List } from 'lucide-react';
 
+import QuizForm from "../components/QuizForm";
 function AdminPage() {
   const [userCount, setUserCount] = useState(0);
   const [courseCount, setCourseCount] = useState(0);
   const [transactionCount, setTransactionCount] = useState(0);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [selectedChapter, setSelectedChapter] = useState(null);
+  const [quizViewMode, setQuizViewMode] = useState("list"); // 'list' or 'create'
+  const [quizzes, setQuizzes] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("course"); // "course" or "admin"
   const [courseViewMode, setCourseViewMode] = useState("add"); // "add", "list", "edit", or "transactions"
@@ -30,14 +38,28 @@ function AdminPage() {
     languages: "",
     originalPrice: "",
     discountPrice: "",
-    promocode: ""
+    promocode: "",
+  });
+  const [quizForm, setQuizForm] = useState({
+    title: "",
+    questions: [
+      {
+        question: "",
+        options: ["", "", "", ""],
+        correctAnswer: 0,
+        hasImage: false,
+        imageFile: null,
+      },
+    ],
   });
   const [subjects, setSubjects] = useState([]);
+  const [quizCreationStep, setQuizCreationStep] = useState('select-course');
+
   const [editingCourseId, setEditingCourseId] = useState(null);
   const [adminForm, setAdminForm] = useState({
     name: "",
     email: "",
-    password: ""
+    password: "",
   });
 
   const navigate = useNavigate();
@@ -58,7 +80,7 @@ function AdminPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await API.get("/admin/stats", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setUserCount(response.data.userCount);
       setCourseCount(response.data.courseCount);
@@ -71,11 +93,118 @@ function AdminPage() {
     }
   };
 
+  const fetchChapterQuizzes = async (chapterId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await API.get(`/quiz/chapter/${chapterId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success) {
+        setQuizzes(response.data.quizzes);
+      }
+    } catch (error) {
+      console.error("Error fetching quizzes:", error);
+      toast.error("Failed to fetch quizzes");
+    }
+  };
+
+  const handleDeleteQuiz = async (quizId) => {
+    if (window.confirm("Are you sure you want to delete this quiz?")) {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await API.delete(`/quiz/${quizId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.data.success) {
+          toast.success("Quiz deleted successfully");
+          fetchChapterQuizzes(selectedChapter._id);
+        }
+      } catch (error) {
+        console.error("Error deleting quiz:", error);
+        toast.error("Failed to delete quiz");
+      }
+    }
+  };
+
+  const handleEditQuiz = async (quiz) => {
+    try {
+      setQuizForm({
+        title: quiz.title,
+        duration: quiz.duration / 60,
+        questions: quiz.questions.map((q) => ({
+          ...q,
+          imageFile: null,
+        })),
+      });
+      setQuizViewMode("edit");
+    } catch (error) {
+      console.error("Error setting up quiz edit:", error);
+      toast.error("Failed to load quiz for editing");
+    }
+  };
+
+  const handleUpdateQuiz = async (quizId, formData) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await API.put(`/quiz/${quizId}`, formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success) {
+        toast.success("Quiz updated successfully");
+        setQuizViewMode("list");
+        fetchChapterQuizzes(selectedChapter._id);
+      }
+    } catch (error) {
+      console.error("Error updating quiz:", error);
+      toast.error("Failed to update quiz");
+    }
+  };
+
+  const resetQuizForm = () => {
+    setQuizForm({
+      title: "",
+      duration: 30,
+      questions: [
+        {
+          question: "",
+          options: ["", "", "", ""],
+          correctAnswer: 0,
+          imageFile: null,
+          hasImage: false,
+        },
+      ],
+    });
+  };
+
+  const handleQuizModeChange = (mode) => {
+    setQuizViewMode(mode);
+    if (mode === "create") {
+      resetQuizForm();
+    }
+  };
+
+  const handleChapterSelect = (course, subject, chapter) => {
+    setSelectedCourse(course);
+    setSelectedSubject(subject);
+    setSelectedChapter(chapter);
+    fetchChapterQuizzes(chapter._id);
+    setQuizViewMode("list");
+  };
+
+  const clearQuizSelection = () => {
+    setSelectedCourse(null);
+    setSelectedSubject(null);
+    setSelectedChapter(null);
+    setQuizzes([]);
+    resetQuizForm();
+    setQuizViewMode("list");
+  };
+
   const fetchCourses = async () => {
     try {
       const token = localStorage.getItem("token");
       const res = await API.get("/courses/getAllCourses", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.data.success) {
         setCourses(res.data.courses);
@@ -90,7 +219,7 @@ function AdminPage() {
     try {
       const token = localStorage.getItem("token");
       const res = await API.get("/transactions", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.data.success) {
         setTransactions(res.data.transactions);
@@ -150,7 +279,7 @@ function AdminPage() {
       quizLink: "",
       audioLink: "",
       pdfLink: "",
-      videoLink: ""
+      videoLink: "",
     });
     setSubjects(newSubjects);
   };
@@ -173,22 +302,32 @@ function AdminPage() {
       const token = localStorage.getItem("token");
       const courseData = {
         ...courseForm,
-        includedAssets: courseForm.includedAssets.split(",").map((s) => s.trim()),
+        includedAssets: courseForm.includedAssets
+          .split(",")
+          .map((s) => s.trim()),
         languages: courseForm.languages.split(",").map((s) => s.trim()),
-        subjects
+        subjects,
       };
       let response;
       if (editingCourseId) {
-        response = await API.put(`/courses/updateCourse/${editingCourseId}`, courseData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        response = await API.put(
+          `/courses/updateCourse/${editingCourseId}`,
+          courseData,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
       } else {
         response = await API.post("/courses/createCourse", courseData, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
       }
       if (response.data.success) {
-        toast.success(editingCourseId ? "Course updated successfully!" : "Course added successfully!");
+        toast.success(
+          editingCourseId
+            ? "Course updated successfully!"
+            : "Course added successfully!"
+        );
         setCourseForm({
           courseName: "",
           description: "",
@@ -197,7 +336,7 @@ function AdminPage() {
           languages: "",
           originalPrice: "",
           discountPrice: "",
-          promocode: ""
+          promocode: "",
         });
         setSubjects([]);
         setEditingCourseId(null);
@@ -217,7 +356,7 @@ function AdminPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await API.post("/admin/createAdmin", adminForm, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.success) {
         setAdminForm({ name: "", email: "", password: "" });
@@ -257,7 +396,7 @@ function AdminPage() {
       languages: course.languages.join(", "),
       originalPrice: course.originalPrice,
       discountPrice: course.discountPrice,
-      promocode: course.promocode || ""
+      promocode: course.promocode || "",
     });
     setSubjects(course.subjects || []);
     setEditingCourseId(course._id);
@@ -268,7 +407,7 @@ function AdminPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await API.delete(`/courses/deleteCourse/${courseId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.success) {
         toast.success("Course deleted successfully!");
@@ -292,7 +431,7 @@ function AdminPage() {
       languages: "",
       originalPrice: "",
       discountPrice: "",
-      promocode: ""
+      promocode: "",
     });
     setSubjects([]);
     setEditingCourseId(null);
@@ -356,7 +495,6 @@ function AdminPage() {
             </div>
           </div>
         </div>
-
         {/* Tabs */}
         <div className="flex gap-4 mb-6">
           <button
@@ -385,6 +523,17 @@ function AdminPage() {
             Create Admin
           </button>
           <button
+            onClick={() => setActiveTab("quiz")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              activeTab === "quiz"
+                ? "bg-blue-500 text-black"
+                : "bg-gray-700 text-white hover:bg-gray-600"
+            }`}
+          >
+            <Brain size={20} />
+            Create Quiz
+          </button>
+          <button
             onClick={() => {
               setActiveTab("course");
               setCourseViewMode("list");
@@ -399,7 +548,6 @@ function AdminPage() {
             Courses List
           </button>
         </div>
-
         {/* Main Content: Course Form / List / Edit / Transactions */}
         {activeTab === "course" && (
           <>
@@ -496,7 +644,10 @@ function AdminPage() {
                       type="text"
                       value={courseForm.courseName}
                       onChange={(e) =>
-                        setCourseForm({ ...courseForm, courseName: e.target.value })
+                        setCourseForm({
+                          ...courseForm,
+                          courseName: e.target.value,
+                        })
                       }
                       required
                       className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -510,7 +661,10 @@ function AdminPage() {
                       rows={3}
                       value={courseForm.description}
                       onChange={(e) =>
-                        setCourseForm({ ...courseForm, description: e.target.value })
+                        setCourseForm({
+                          ...courseForm,
+                          description: e.target.value,
+                        })
                       }
                       required
                       className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -524,7 +678,10 @@ function AdminPage() {
                       type="text"
                       value={courseForm.includedAssets}
                       onChange={(e) =>
-                        setCourseForm({ ...courseForm, includedAssets: e.target.value })
+                        setCourseForm({
+                          ...courseForm,
+                          includedAssets: e.target.value,
+                        })
                       }
                       required
                       className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -538,7 +695,10 @@ function AdminPage() {
                       type="text"
                       value={courseForm.introVideo}
                       onChange={(e) =>
-                        setCourseForm({ ...courseForm, introVideo: e.target.value })
+                        setCourseForm({
+                          ...courseForm,
+                          introVideo: e.target.value,
+                        })
                       }
                       required
                       className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -552,7 +712,10 @@ function AdminPage() {
                       type="text"
                       value={courseForm.languages}
                       onChange={(e) =>
-                        setCourseForm({ ...courseForm, languages: e.target.value })
+                        setCourseForm({
+                          ...courseForm,
+                          languages: e.target.value,
+                        })
                       }
                       required
                       className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -566,7 +729,10 @@ function AdminPage() {
                       type="number"
                       value={courseForm.originalPrice}
                       onChange={(e) =>
-                        setCourseForm({ ...courseForm, originalPrice: e.target.value })
+                        setCourseForm({
+                          ...courseForm,
+                          originalPrice: e.target.value,
+                        })
                       }
                       required
                       className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -580,7 +746,10 @@ function AdminPage() {
                       type="number"
                       value={courseForm.discountPrice}
                       onChange={(e) =>
-                        setCourseForm({ ...courseForm, discountPrice: e.target.value })
+                        setCourseForm({
+                          ...courseForm,
+                          discountPrice: e.target.value,
+                        })
                       }
                       required
                       className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -594,7 +763,10 @@ function AdminPage() {
                       type="text"
                       value={courseForm.promocode}
                       onChange={(e) =>
-                        setCourseForm({ ...courseForm, promocode: e.target.value })
+                        setCourseForm({
+                          ...courseForm,
+                          promocode: e.target.value,
+                        })
                       }
                       className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
@@ -626,7 +798,9 @@ function AdminPage() {
                           </button>
                         </div>
                         <div>
-                          <h4 className="text-md font-semibold mb-2">Chapters</h4>
+                          <h4 className="text-md font-semibold mb-2">
+                            Chapters
+                          </h4>
                           {subject.chapters.map((chapter, chapIndex) => (
                             <div key={chapIndex} className="mb-2">
                               <input
@@ -692,7 +866,9 @@ function AdminPage() {
                                 className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 mb-1"
                               />
                               <button
-                                onClick={() => removeChapter(subjIndex, chapIndex)}
+                                onClick={() =>
+                                  removeChapter(subjIndex, chapIndex)
+                                }
                                 type="button"
                                 className="text-red-500 hover:text-red-600"
                               >
@@ -724,7 +900,9 @@ function AdminPage() {
                       className="w-full px-4 py-2 bg-blue-500 text-black rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
                     >
                       <Plus size={20} />
-                      {courseViewMode === "edit" ? "Update Course" : "Add Course"}
+                      {courseViewMode === "edit"
+                        ? "Update Course"
+                        : "Add Course"}
                     </button>
                     {courseViewMode === "edit" && (
                       <button
@@ -742,7 +920,9 @@ function AdminPage() {
 
             {courseViewMode === "transactions" && (
               <>
-                <h2 className="text-xl font-semibold mb-4">Transactions List</h2>
+                <h2 className="text-xl font-semibold mb-4">
+                  Transactions List
+                </h2>
                 {transactions.length ? (
                   <table className="min-w-full divide-y divide-gray-700">
                     <thead className="bg-gray-800">
@@ -795,7 +975,6 @@ function AdminPage() {
             )}
           </>
         )}
-
         {activeTab === "admin" && (
           <div className="bg-gray-800 rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold mb-6">Create New Admin</h2>
@@ -825,7 +1004,9 @@ function AdminPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Password</label>
+                <label className="block text-sm font-medium mb-1">
+                  Password
+                </label>
                 <input
                   type="password"
                   value={adminForm.password}
@@ -846,6 +1027,172 @@ function AdminPage() {
             </form>
           </div>
         )}
+
+{activeTab === "quiz" && (
+  <div className="bg-gray-800 rounded-lg shadow-md p-6">
+    {/* Header with breadcrumb navigation */}
+    <div className="flex items-center gap-2 mb-6">
+      <h2 className="text-xl font-semibold">Quiz Creation</h2>
+      {selectedCourse && (
+        <>
+          <span className="text-gray-400">/</span>
+          <span>{selectedCourse.courseName}</span>
+        </>
+      )}
+      {selectedSubject && (
+        <>
+          <span className="text-gray-400">/</span>
+          <span>{selectedSubject.subjectName}</span>
+        </>
+      )}
+      {selectedChapter && (
+        <>
+          <span className="text-gray-400">/</span>
+          <span>{selectedChapter.chapterName}</span>
+        </>
+      )}
+    </div>
+
+    {/* Step 1: Course Selection */}
+    {quizCreationStep === 'select-course' && (
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium mb-4">Select a Course</h3>
+        {courses.map((course) => (
+          <div 
+            key={course._id}
+            className="border border-gray-700 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors"
+            onClick={() => {
+              setSelectedCourse(course);
+              setQuizCreationStep('select-subject');
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <BookOpen size={20} />
+              <span className="font-medium">{course.courseName}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {/* Step 2: Subject Selection */}
+    {quizCreationStep === 'select-subject' && selectedCourse && (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 mb-4">
+          <button 
+            onClick={() => {
+              setSelectedCourse(null);
+              setQuizCreationStep('select-course');
+            }}
+            className="text-gray-400 hover:text-white"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <h3 className="text-lg font-medium">Select a Subject</h3>
+        </div>
+        {selectedCourse.subjects.map((subject) => (
+          <div 
+            key={subject._id}
+            className="border border-gray-700 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors"
+            onClick={() => {
+              setSelectedSubject(subject);
+              setQuizCreationStep('select-chapter');
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <Book size={20} />
+              <span className="font-medium">{subject.subjectName}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {/* Step 3: Chapter Selection */}
+    {quizCreationStep === 'select-chapter' && selectedSubject && (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 mb-4">
+          <button 
+            onClick={() => {
+              setSelectedSubject(null);
+              setQuizCreationStep('select-subject');
+            }}
+            className="text-gray-400 hover:text-white"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <h3 className="text-lg font-medium">Select a Chapter</h3>
+        </div>
+        {selectedSubject.chapters.map((chapter) => (
+          <div 
+            key={chapter._id}
+            className="border border-gray-700 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors"
+            onClick={() => {
+              setSelectedChapter(chapter);
+              setQuizCreationStep('create-quiz');
+              // fetchChapterQuizzes(chapter._id);
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <FileText size={20} />
+              <span className="font-medium">{chapter.chapterName}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {/* Step 4: Quiz Creation/Management */}
+    {quizCreationStep === 'create-quiz' && selectedChapter && (
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => {
+                setSelectedChapter(null);
+                setQuizCreationStep('select-chapter');
+              }}
+              className="text-gray-400 hover:text-white"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <h3 className="text-lg font-medium">Quiz Management</h3>
+          </div>
+          <button
+            onClick={() => setQuizViewMode(quizViewMode === 'list' ? 'create' : 'list')}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600"
+          >
+            {quizViewMode === 'list' ? (
+              <>
+                <Plus size={20} />
+                Create Quiz
+              </>
+            ) : (
+              <>
+                <List size={20} />
+                View Quizzes
+              </>
+            )}
+          </button>
+        </div>
+
+        {quizViewMode === 'list' ? (
+          <div>None</div>
+        ) : (
+          <QuizForm
+            courseId={selectedCourse._id}
+            subjectId={selectedSubject._id}
+            chapterId={selectedChapter._id}
+            onSuccess={() => {
+              setQuizViewMode('list');
+              fetchChapterQuizzes(selectedChapter._id);
+            }}
+          />
+        )}
+      </div>
+    )}
+  </div>
+)}
       </div>
     </div>
   );

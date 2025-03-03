@@ -21,6 +21,10 @@ import {
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './Quiz.css';
+import { useLocation } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import useWindowFocus from 'use-window-focus'; // Install this package
+import {usePreventCopy} from '../hooks/usePreventCopy';
 
 interface Question {
   id: number;
@@ -31,83 +35,16 @@ interface Question {
   imageUrl?: string;
 }
 
-const questions: Question[] = [
-  {
-    id: 1,
-    question: "What is the capital of France?",
-    options: ["London", "Berlin", "Paris", "Madrid"],
-    correctAnswer: 2
-  },
-  {
-    id: 2,
-    question: "Which planet is known as the Red Planet?",
-    options: ["Venus", "Mars", "Jupiter", "Saturn"],
-    correctAnswer: 1,
-    hasImage: true,
-    imageUrl: "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80"
-  },
-  {
-    id: 3,
-    question: "What is 2 + 2?",
-    options: ["3", "4", "5", "6"],
-    correctAnswer: 1
-  },
-  {
-    id: 4,
-    question: "Which of the following is NOT a programming language?",
-    options: ["Java", "Python", "HTML", "Photoshop"],
-    correctAnswer: 3
-  },
-  {
-    id: 5,
-    question: "What is the largest ocean on Earth?",
-    options: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
-    correctAnswer: 3,
-    hasImage: true,
-    imageUrl: "https://images.unsplash.com/photo-1439405326854-014607f694d7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
-  },
-  {
-    id: 6,
-    question: "Which of these elements has the chemical symbol 'O'?",
-    options: ["Gold", "Oxygen", "Osmium", "Oganesson"],
-    correctAnswer: 1
-  },
-  {
-    id: 7,
-    question: "What is the square root of 144?",
-    options: ["12", "14", "16", "18"],
-    correctAnswer: 0
-  },
-  {
-    id: 8,
-    question: "Which of these animals is a mammal?",
-    options: ["Shark", "Snake", "Dolphin", "Crocodile"],
-    correctAnswer: 2,
-    hasImage: true,
-    imageUrl: "https://images.unsplash.com/photo-1607153333879-c174d265f1d2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-  },
-  {
-    id: 9,
-    question: "Which country is known as the Land of the Rising Sun?",
-    options: ["China", "South Korea", "Japan", "Thailand"],
-    correctAnswer: 2
-  },
-  {
-    id: 10,
-    question: "What is the main component of the Sun?",
-    options: ["Helium", "Hydrogen", "Oxygen", "Carbon"],
-    correctAnswer: 1
-  }
-];
+
 
 function Quiz() {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<number[]>(Array(questions.length).fill(-1));
-  const [showResults, setShowResults] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(true);
-  const [timeRemaining, setTimeRemaining] = useState(30 * 60); // 30 minutes in seconds
-  const [flaggedQuestions, setFlaggedQuestions] = useState<boolean[]>(Array(questions.length).fill(false));
+  // const [currentQuestion, setCurrentQuestion] = useState(0);
+  // const [selectedAnswers, setSelectedAnswers] = useState<number[]>(Array(questions.length).fill(-1));
+  // const [showResults, setShowResults] = useState(false);
+  // const [isFullscreen, setIsFullscreen] = useState(false);
+  // const [showInstructions, setShowInstructions] = useState(true);
+  // const [timeRemaining, setTimeRemaining] = useState(30 * 60); // 30 minutes in seconds
+  // const [flaggedQuestions, setFlaggedQuestions] = useState<boolean[]>(Array(questions.length).fill(false));
   const [darkMode, setDarkMode] = useState(true);
   const [userName, setUserName] = useState("John Doe");
   const { courseId, subjectId } = useParams();
@@ -115,6 +52,88 @@ function Quiz() {
   const [subjectName, setSubjectName] = useState("Data Structures");
   const [courseName, setCourseName] = useState("Computer Science");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const location = useLocation();
+  const quizData = location.state?.quiz;
+  const questions = quizData?.questions || [];
+
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswers, setSelectedAnswers] = useState<number[]>(Array(questions.length).fill(-1));
+  const [showResults, setShowResults] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(true);
+  const [timeRemaining, setTimeRemaining] = useState(quizData?.duration || 1800);
+  const [flaggedQuestions, setFlaggedQuestions] = useState<boolean[]>(Array(questions.length).fill(false));
+  const [tabSwitchCount, setTabSwitchCount] = useState(0);
+  const isWindowFocused = useWindowFocus();
+
+  const [penaltyMarks, setPenaltyMarks] = useState(0);
+
+  usePreventCopy();
+
+
+  useEffect(() => {
+    if (!isWindowFocused && !showResults && !showInstructions) {
+      setTabSwitchCount(prev => {
+        const newCount = prev + 1;
+        if (newCount >= 3) {
+          setShowResults(true);
+          const score = calculateScore();
+          const finalScore = score - 4;
+          setPenaltyMarks(4);
+          toast.error('Test ended due to multiple tab switches. -4 marks penalty applied.');
+        }
+        toast('Warning: Tab switching detected! ' + `(${newCount}/3)`, {
+          icon: '⚠️',
+        });
+        return newCount;
+      });
+    }
+  }, [isWindowFocused]);
+
+
+  useEffect(() => {
+    const preventSelection = (e) => {
+      e.preventDefault();
+      return false;
+    };
+
+    document.addEventListener('selectstart', preventSelection);
+    document.addEventListener('dragstart', preventSelection);
+
+    return () => {
+      document.removeEventListener('selectstart', preventSelection);
+      document.removeEventListener('dragstart', preventSelection);
+    };
+  }, []);
+
+
+
+
+  useEffect(() => {
+    if (!quizData) {
+      navigate(-1);
+      return;
+    }
+
+    setSelectedAnswers(Array(quizData.questions.length).fill(-1));
+    setTimeRemaining(quizData.duration);
+  }, [quizData]);
+
+
+
+
+  // useEffect(() => {
+  //   if (!quizData) {
+  //     navigate(-1);
+  //     return;
+  //   }
+
+  //   setSelectedAnswers(Array(quizData.questions.length).fill(-1));
+  //   setTimeRemaining(quizData.duration);
+  // }, [quizData]);
+
+
+  // const questions = quizData?.questions || [];
 
   // Prevent context menu (right-click)
   useEffect(() => {
@@ -166,7 +185,9 @@ function Quiz() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && !showResults && !showInstructions) {
-        alert("Warning: Tab switching detected! This will be reported.");
+        toast('Tab switching detected! This will be recorded.', {
+          icon: '⚠️',
+        });
       }
     };
 
@@ -259,7 +280,9 @@ function Quiz() {
 
   const handleSubmitTest = () => {
     if (window.confirm("Are you sure you want to submit the test? You cannot change your answers after submission.")) {
+      const finalScore = calculateScore() - (tabSwitchCount * 0.5); // Deduct 0.5 marks per tab switch
       setShowResults(true);
+      toast.success('Test submitted successfully!');
     }
   };
 
@@ -373,7 +396,8 @@ function Quiz() {
     );
   }
 
-  if (showResults) {
+
+    if (showResults) {
     const score = calculateScore();
     const percentage = (score / questions.length) * 100;
     const negativeMarks = (questions.length - score) * 0.25;
@@ -381,7 +405,7 @@ function Quiz() {
     const finalPercentage = (finalScore / questions.length) * 100;
 
     return (
-      <div className={`min-h-screen ${darkMode ? 'bg-black text-white' : 'bg-white text-black'}`}>
+      <div className={`min-h-screen w-screen ${darkMode ? 'bg-black text-white' : 'bg-white text-black'}`}>
         <header className={`py-4 px-6 flex justify-between items-center ${darkMode ? 'bg-zinc-900' : 'bg-gray-100'} shadow-md`}>
           <div className="flex items-center gap-2">
             <BarChart3 className="text-white" />
@@ -422,21 +446,29 @@ function Quiz() {
               <div className={`p-6 rounded-lg text-center ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Negative Marks</p>
                 <p className="text-4xl font-bold mt-2">-{negativeMarks.toFixed(2)}</p>
-                <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  ({questions.length - score} wrong × 0.25)
-                </p>
+      <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+        ({questions.length - score} wrong × 0.25)
+      </p>
               </div>
-              
+
               <div className={`p-6 rounded-lg text-center ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
-                <p className="text-sm">Final Score</p>
-                <p className="text-4xl font-bold mt-2">
-                  {finalScore.toFixed(2)}/{questions.length}
-                </p>
-                <p className="text-sm mt-1">
-                  ({finalPercentage.toFixed(1)}%)
-                </p>
-              </div>
-            </div>
+      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Penalty Marks</p>
+      <p className="text-4xl font-bold mt-2">-{penaltyMarks}</p>
+      <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+        (Tab switching violations)
+      </p>
+    </div>
+              
+    <div className={`p-6 rounded-lg text-center ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
+      <p className="text-sm">Final Score</p>
+      <p className="text-4xl font-bold mt-2">
+        {(score - negativeMarks - penaltyMarks).toFixed(2)}/{questions.length}
+      </p>
+      <p className="text-sm mt-1">
+        ({((score - negativeMarks - penaltyMarks) / questions.length * 100).toFixed(1)}%)
+      </p>
+    </div>
+  </div>
 
             <div className="space-y-4 mt-8">
               <h3 className="text-xl font-semibold mb-4">Question Analysis</h3>

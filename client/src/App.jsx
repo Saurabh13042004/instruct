@@ -51,6 +51,7 @@ function AppContent() {
         <Route path='/course-content-detail/:courseId/:subjectId/quiz' element={<Quiz />} />
         <Route path='/course/:courseId' element={<CourseDetail />} />
         <Route path="/auth/success" element={<AuthSuccess />} />
+        <Route path="/quiz" element={<Quiz />} />
       </Routes>
       {!isQuizRoute && <Footer />}
     </>

@@ -3,10 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import API from "../../api";
 import { PlayCircle, HelpCircle, FileText, Music } from "lucide-react";
 import Modal from "react-modal";
-import * as pdfjsLib from 'pdfjs-dist';
-import AudioPlayer from 'react-h5-audio-player';
-import 'react-h5-audio-player/lib/styles.css';
-import { Link } from 'react-router-dom';
+import * as pdfjsLib from "pdfjs-dist";
+import AudioPlayer from "react-h5-audio-player";
+import "react-h5-audio-player/lib/styles.css";
+import { Link } from "react-router-dom";
 // Set up PDF.js worker URL with dynamic version
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -27,6 +27,8 @@ const CourseContentDetail = () => {
   const [pdfDoc, setPdfDoc] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [numPages, setNumPages] = useState(null);
+  const [quizData, setQuizData] = useState(null);
+
   const [isRendering, setIsRendering] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null);
   const [showAudioPlayer, setShowAudioPlayer] = useState(false);
@@ -34,9 +36,34 @@ const CourseContentDetail = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Add this filter function before the return statement
-  const filteredChapters = subject?.chapters.filter(chapter =>
+  const filteredChapters = subject?.chapters.filter((chapter) =>
     chapter.chapterName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const handleQuizClick = async (chapterId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await API.get(`/quiz/chapter/${chapterId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+  
+      if (response.data.success && response.data.quizzes.length > 0) {
+        navigate(`/quiz`, {
+          state: { 
+            quiz: response.data.quizzes[0],
+            courseId,
+            subjectId,
+            chapterId
+          }
+        });
+      } else {
+        toast.error("No quiz available for this chapter");
+      }
+    } catch (error) {
+      console.error("Error fetching quiz:", error);
+      toast.error("Failed to load quiz");
+    }
+  };
+  
 
   // Replace the existing Chapters Grid section with this:
 
@@ -122,7 +149,6 @@ const CourseContentDetail = () => {
     }
   };
 
-
   // In the same file, update the PDF loading useEffect
   useEffect(() => {
     if (pdfViewerUrl) {
@@ -189,7 +215,9 @@ const CourseContentDetail = () => {
         >
           ← Back
         </button>
-        <h1 className="text-4xl font-bold text-white text-shadow">{subject.subjectName}</h1>
+        <h1 className="text-4xl font-bold text-white text-shadow">
+          {subject.subjectName}
+        </h1>
       </div>
 
       <div className="max-w-7xl mx-auto mb-8">
@@ -230,110 +258,129 @@ const CourseContentDetail = () => {
       </div>
 
       {/* Chapters Grid */}
- {/* Chapters Grid */}
-<div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-  {filteredChapters?.length > 0 ? (
-    filteredChapters.map((chapter, index) => (
-      <div key={index} className="relative">
-        <div className="card bg-gradient-to-br from-gray-800 to-gray-900
+      {/* Chapters Grid */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredChapters?.length > 0 ? (
+          filteredChapters.map((chapter, index) => (
+            <div key={index} className="relative">
+              <div
+                className="card bg-gradient-to-br from-gray-800 to-gray-900
                        border border-white/10 rounded-2xl overflow-visible transition-all 
-                       duration-300 hover:border-white/20 hover:translate-y-[-4px]">
-          {/* Card Header */}
-          <div
-            onClick={() => toggleChapter(index)}
-            className="p-6 cursor-pointer"
-          >
-            <div className="text-4xl mb-4 transition-transform duration-300 
-                           transform hover:scale-110">
-              {index % 2 === 0 ? '📚' : '🎯'}
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-2">
-              {chapter.chapterName}
-            </h3>
-          </div>
-        </div>
+                       duration-300 hover:border-white/20 hover:translate-y-[-4px]"
+              >
+                {/* Card Header */}
+                <div
+                  onClick={() => toggleChapter(index)}
+                  className="p-6 cursor-pointer"
+                >
+                  <div
+                    className="text-4xl mb-4 transition-transform duration-300 
+                           transform hover:scale-110"
+                  >
+                    {index % 2 === 0 ? "📚" : "🎯"}
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    {chapter.chapterName}
+                  </h3>
+                </div>
+              </div>
 
-        {/* Card Content - Expandable Section */}
-        <div 
-          className={`mt-2 transition-all duration-500 ease-in-out origin-top
-                     ${activeChapters[index] ? 'opacity-100 transform scale-y-100' : 'opacity-0 transform scale-y-0 h-0'}`}
-        >
-          <div className="space-y-2 bg-gray-800/50 rounded-xl p-4 backdrop-blur-sm border border-white/10">
-            {/* PDF Option */}
-            <div 
-              onClick={() => handleOpenProtectedResource(chapter.pdfLink, "pdf")}
-              className="transform transition-all duration-300 hover:translate-x-2
+              {/* Card Content - Expandable Section */}
+              <div
+                className={`mt-2 transition-all duration-500 ease-in-out origin-top
+                     ${
+                       activeChapters[index]
+                         ? "opacity-100 transform scale-y-100"
+                         : "opacity-0 transform scale-y-0 h-0"
+                     }`}
+              >
+                <div className="space-y-2 bg-gray-800/50 rounded-xl p-4 backdrop-blur-sm border border-white/10">
+                  {/* PDF Option */}
+                  <div
+                    onClick={() =>
+                      handleOpenProtectedResource(chapter.pdfLink, "pdf")
+                    }
+                    className="transform transition-all duration-300 hover:translate-x-2
                        bg-black/20 rounded-lg cursor-pointer"
-            >
-              <div className="p-4 hover:bg-white/10 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  <span>Notes PDF</span>
-                </div>
-                <span className="px-2 py-1 text-sm bg-white/20 rounded-full">
-                  View
-                </span>
-              </div>
-            </div>
+                  >
+                    <div className="p-4 hover:bg-white/10 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-5 h-5" />
+                        <span>Notes PDF</span>
+                      </div>
+                      <span className="px-2 py-1 text-sm bg-white/20 rounded-full">
+                        View
+                      </span>
+                    </div>
+                  </div>
 
-            {/* Audio Option */}
-            <div 
-              onClick={() => handleOpenProtectedResource(chapter.audioLink, "audio")}
-              className="transform transition-all duration-300 hover:translate-x-2
+                  {/* Audio Option */}
+                  <div
+                    onClick={() =>
+                      handleOpenProtectedResource(chapter.audioLink, "audio")
+                    }
+                    className="transform transition-all duration-300 hover:translate-x-2
                        bg-black/20 rounded-lg cursor-pointer"
-            >
-              <div className="p-4 hover:bg-white/10 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Music className="w-5 h-5" />
-                  <span>Audio Book</span>
-                </div>
-                <span className="px-2 py-1 text-sm bg-white/20 rounded-full">
-                  Play
-                </span>
-              </div>
-            </div>
+                  >
+                    <div className="p-4 hover:bg-white/10 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Music className="w-5 h-5" />
+                        <span>Audio Book</span>
+                      </div>
+                      <span className="px-2 py-1 text-sm bg-white/20 rounded-full">
+                        Play
+                      </span>
+                    </div>
+                  </div>
 
-            {/* Video Option */}
-            <div className="transform transition-all duration-300 hover:translate-x-2
-                         bg-black/20 rounded-lg cursor-pointer">
-              <div className="p-4 hover:bg-white/10 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <PlayCircle className="w-5 h-5" />
-                  <span>Video Lecture</span>
-                </div>
-                <span className="px-2 py-1 text-sm bg-white/20 rounded-full">
-                  Watch
-                </span>
-              </div>
-            </div>
+                  {/* Video Option */}
+                  <div
+                    className="transform transition-all duration-300 hover:translate-x-2
+                         bg-black/20 rounded-lg cursor-pointer"
+                  >
+                    <div className="p-4 hover:bg-white/10 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <PlayCircle className="w-5 h-5" />
+                        <span>Video Lecture</span>
+                      </div>
+                      <span className="px-2 py-1 text-sm bg-white/20 rounded-full">
+                        Watch
+                      </span>
+                    </div>
+                  </div>
 
-            {/* Quiz Option */}
-            <div className="transform transition-all duration-300 hover:translate-x-2
-                         bg-black/20 rounded-lg cursor-pointer">
-              <div className="p-4 hover:bg-white/10 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <HelpCircle className="w-5 h-5" />
-                  <span>Practice Quiz</span>
+                  {/* Quiz Option */}
+                  <div
+                    className="transform transition-all duration-300 hover:translate-x-2
+                         bg-black/20 rounded-lg cursor-pointer"
+                  >
+                    <div className="p-4 hover:bg-white/10 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <HelpCircle className="w-5 h-5" />
+                        <span>Practice Quiz</span>
+                      </div>
+                      <span className="px-2 py-1 text-sm bg-white/20 rounded-full">
+                        <Link
+                          onClick={() => handleQuizClick(chapter._id)}
+                          className="px-2 py-1 text-sm bg-white/20 rounded-full"
+                        >
+                          Start
+                        </Link>
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <span className="px-2 py-1 text-sm bg-white/20 rounded-full">
-                <Link to={`/course-content-detail/${courseId}/${subjectId}/quiz`}>
-                  Start
-                </Link>
-                </span>
               </div>
             </div>
+          ))
+        ) : (
+          <div className="col-span-full text-center py-8">
+            <p className="text-gray-400 text-lg">
+              No chapters found matching "{searchTerm}"
+            </p>
           </div>
-        </div>
+        )}
       </div>
-    ))
-  ) : (
-    <div className="col-span-full text-center py-8">
-      <p className="text-gray-400 text-lg">
-        No chapters found matching "{searchTerm}"
-      </p>
-    </div>
-  )}
-</div>
 
       {/* PDF Viewer Modal */}
       {pdfViewerUrl && (
@@ -379,7 +426,7 @@ const CourseContentDetail = () => {
                 <div className="flex items-center justify-center gap-4 p-2 bg-gray-100 rounded-lg w-full">
                   <button
                     disabled={pageNumber <= 1}
-                    onClick={() => setPageNumber(prev => prev - 1)}
+                    onClick={() => setPageNumber((prev) => prev - 1)}
                     className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
                   >
                     Previous
@@ -389,7 +436,7 @@ const CourseContentDetail = () => {
                   </span>
                   <button
                     disabled={pageNumber >= numPages}
-                    onClick={() => setPageNumber(prev => prev + 1)}
+                    onClick={() => setPageNumber((prev) => prev + 1)}
                     className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
                   >
                     Next
@@ -422,10 +469,10 @@ const CourseContentDetail = () => {
             <AudioPlayer
               autoPlay
               src={audioUrl}
-              onPlay={e => console.log("onPlay")}
+              onPlay={(e) => console.log("onPlay")}
               showJumpControls={true}
-              customProgressBarSection={['PROGRESS_BAR']}
-              customControlsSection={['MAIN_CONTROLS', 'VOLUME_CONTROLS']}
+              customProgressBarSection={["PROGRESS_BAR"]}
+              customControlsSection={["MAIN_CONTROLS", "VOLUME_CONTROLS"]}
             />
           </div>
         </Modal>

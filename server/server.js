@@ -14,7 +14,7 @@ const transactionRoutes = require("./routes/transaction");
 const uploadRoutes = require("./routes/upload");
 const presignedUrlRoute = require("./routes/presignedUrl");
 
-
+const quizRoutes = require("./routes/quiz");
 const app = express();
 
 // Middleware
@@ -32,7 +32,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/presigned-url", presignedUrlRoute);
-
+app.use("/api/quiz", quizRoutes);
 
 
 
