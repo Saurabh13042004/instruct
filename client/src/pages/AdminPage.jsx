@@ -14,7 +14,7 @@ import {
   Bell,
   Brain,
 } from "lucide-react";
-import { ChevronDown, Book, FileText, ArrowLeft, List } from 'lucide-react';
+import { ChevronDown, Book, FileText, ArrowLeft, List } from "lucide-react";
 
 import QuizForm from "../components/QuizForm";
 function AdminPage() {
@@ -53,7 +53,7 @@ function AdminPage() {
     ],
   });
   const [subjects, setSubjects] = useState([]);
-  const [quizCreationStep, setQuizCreationStep] = useState('select-course');
+  const [quizCreationStep, setQuizCreationStep] = useState("select-course");
 
   const [editingCourseId, setEditingCourseId] = useState(null);
   const [adminForm, setAdminForm] = useState({
@@ -63,6 +63,12 @@ function AdminPage() {
   });
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (activeTab === "quiz") {
+      fetchCourses();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -130,11 +136,15 @@ function AdminPage() {
     try {
       setQuizForm({
         title: quiz.title,
-        duration: quiz.duration / 60,
+        duration: quiz.duration / 60, // Convert seconds to minutes
         questions: quiz.questions.map((q) => ({
-          ...q,
-          imageFile: null,
-        })),
+          question: q.question,
+          options: q.options,
+          correctAnswer: q.correctAnswer,
+          hasImage: q.hasImage || false,
+          imageUrl: q.imageUrl || '',
+          imageFile: null
+        }))
       });
       setQuizViewMode("edit");
     } catch (error) {
@@ -142,7 +152,7 @@ function AdminPage() {
       toast.error("Failed to load quiz for editing");
     }
   };
-
+  
   const handleUpdateQuiz = async (quizId, formData) => {
     try {
       const token = localStorage.getItem("token");
@@ -1028,171 +1038,208 @@ function AdminPage() {
           </div>
         )}
 
-{activeTab === "quiz" && (
-  <div className="bg-gray-800 rounded-lg shadow-md p-6">
-    {/* Header with breadcrumb navigation */}
-    <div className="flex items-center gap-2 mb-6">
-      <h2 className="text-xl font-semibold">Quiz Creation</h2>
-      {selectedCourse && (
-        <>
-          <span className="text-gray-400">/</span>
-          <span>{selectedCourse.courseName}</span>
-        </>
-      )}
-      {selectedSubject && (
-        <>
-          <span className="text-gray-400">/</span>
-          <span>{selectedSubject.subjectName}</span>
-        </>
-      )}
-      {selectedChapter && (
-        <>
-          <span className="text-gray-400">/</span>
-          <span>{selectedChapter.chapterName}</span>
-        </>
-      )}
-    </div>
-
-    {/* Step 1: Course Selection */}
-    {quizCreationStep === 'select-course' && (
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium mb-4">Select a Course</h3>
-        {courses.map((course) => (
-          <div 
-            key={course._id}
-            className="border border-gray-700 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors"
-            onClick={() => {
-              setSelectedCourse(course);
-              setQuizCreationStep('select-subject');
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <BookOpen size={20} />
-              <span className="font-medium">{course.courseName}</span>
+        {activeTab === "quiz" && (
+          <div className="bg-gray-800 rounded-lg shadow-md p-6">
+            {/* Header with breadcrumb navigation */}
+            <div className="flex items-center gap-2 mb-6">
+              <h2 className="text-xl font-semibold">Quiz Creation</h2>
+              {selectedCourse && (
+                <>
+                  <span className="text-gray-400">/</span>
+                  <span>{selectedCourse.courseName}</span>
+                </>
+              )}
+              {selectedSubject && (
+                <>
+                  <span className="text-gray-400">/</span>
+                  <span>{selectedSubject.subjectName}</span>
+                </>
+              )}
+              {selectedChapter && (
+                <>
+                  <span className="text-gray-400">/</span>
+                  <span>{selectedChapter.chapterName}</span>
+                </>
+              )}
             </div>
-          </div>
-        ))}
-      </div>
-    )}
 
-    {/* Step 2: Subject Selection */}
-    {quizCreationStep === 'select-subject' && selectedCourse && (
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 mb-4">
-          <button 
-            onClick={() => {
-              setSelectedCourse(null);
-              setQuizCreationStep('select-course');
-            }}
-            className="text-gray-400 hover:text-white"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <h3 className="text-lg font-medium">Select a Subject</h3>
-        </div>
-        {selectedCourse.subjects.map((subject) => (
-          <div 
-            key={subject._id}
-            className="border border-gray-700 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors"
-            onClick={() => {
-              setSelectedSubject(subject);
-              setQuizCreationStep('select-chapter');
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <Book size={20} />
-              <span className="font-medium">{subject.subjectName}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
-
-    {/* Step 3: Chapter Selection */}
-    {quizCreationStep === 'select-chapter' && selectedSubject && (
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 mb-4">
-          <button 
-            onClick={() => {
-              setSelectedSubject(null);
-              setQuizCreationStep('select-subject');
-            }}
-            className="text-gray-400 hover:text-white"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <h3 className="text-lg font-medium">Select a Chapter</h3>
-        </div>
-        {selectedSubject.chapters.map((chapter) => (
-          <div 
-            key={chapter._id}
-            className="border border-gray-700 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors"
-            onClick={() => {
-              setSelectedChapter(chapter);
-              setQuizCreationStep('create-quiz');
-              // fetchChapterQuizzes(chapter._id);
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <FileText size={20} />
-              <span className="font-medium">{chapter.chapterName}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
-
-    {/* Step 4: Quiz Creation/Management */}
-    {quizCreationStep === 'create-quiz' && selectedChapter && (
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => {
-                setSelectedChapter(null);
-                setQuizCreationStep('select-chapter');
-              }}
-              className="text-gray-400 hover:text-white"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <h3 className="text-lg font-medium">Quiz Management</h3>
-          </div>
-          <button
-            onClick={() => setQuizViewMode(quizViewMode === 'list' ? 'create' : 'list')}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600"
-          >
-            {quizViewMode === 'list' ? (
-              <>
-                <Plus size={20} />
-                Create Quiz
-              </>
-            ) : (
-              <>
-                <List size={20} />
-                View Quizzes
-              </>
+            {/* Step 1: Course Selection */}
+            {quizCreationStep === "select-course" && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium mb-4">Select a Course</h3>
+                {courses.map((course) => (
+                  <div
+                    key={course._id}
+                    className="border border-gray-700 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors"
+                    onClick={() => {
+                      setSelectedCourse(course);
+                      setQuizCreationStep("select-subject");
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <BookOpen size={20} />
+                      <span className="font-medium">{course.courseName}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
-          </button>
-        </div>
 
-        {quizViewMode === 'list' ? (
-          <div>None</div>
-        ) : (
-          <QuizForm
-            courseId={selectedCourse._id}
-            subjectId={selectedSubject._id}
-            chapterId={selectedChapter._id}
-            onSuccess={() => {
-              setQuizViewMode('list');
-              fetchChapterQuizzes(selectedChapter._id);
-            }}
-          />
+            {/* Step 2: Subject Selection */}
+            {quizCreationStep === "select-subject" && selectedCourse && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <button
+                    onClick={() => {
+                      setSelectedCourse(null);
+                      setQuizCreationStep("select-course");
+                    }}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <ArrowLeft size={20} />
+                  </button>
+                  <h3 className="text-lg font-medium">Select a Subject</h3>
+                </div>
+                {selectedCourse.subjects.map((subject) => (
+                  <div
+                    key={subject._id}
+                    className="border border-gray-700 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors"
+                    onClick={() => {
+                      setSelectedSubject(subject);
+                      setQuizCreationStep("select-chapter");
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Book size={20} />
+                      <span className="font-medium">{subject.subjectName}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Step 3: Chapter Selection */}
+            {quizCreationStep === "select-chapter" && selectedSubject && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <button
+                    onClick={() => {
+                      setSelectedSubject(null);
+                      setQuizCreationStep("select-subject");
+                    }}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <ArrowLeft size={20} />
+                  </button>
+                  <h3 className="text-lg font-medium">Select a Chapter</h3>
+                </div>
+                {selectedSubject.chapters.map((chapter) => (
+                  <div
+                    key={chapter._id}
+                    className="border border-gray-700 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors"
+                    onClick={() => {
+                      setSelectedChapter(chapter);
+                      setQuizCreationStep("create-quiz");
+                      fetchChapterQuizzes(chapter._id);
+                      // fetchChapterQuizzes(chapter._id);
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText size={20} />
+                      <span className="font-medium">{chapter.chapterName}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Step 4: Quiz Creation/Management */}
+            {quizCreationStep === "create-quiz" && selectedChapter && (
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setSelectedChapter(null);
+                        setQuizCreationStep("select-chapter");
+                      }}
+                      className="text-gray-400 hover:text-white"
+                    >
+                      <ArrowLeft size={20} />
+                    </button>
+                    <h3 className="text-lg font-medium">Quiz Management</h3>
+                  </div>
+                  <button
+                    onClick={() =>
+                      setQuizViewMode(
+                        quizViewMode === "list" ? "create" : "list"
+                      )
+                    }
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600"
+                  >
+                    {quizViewMode === "list" ? (
+                      <>
+                        <Plus size={20} />
+                        Create Quiz
+                      </>
+                    ) : (
+                      <>
+                        <List size={20} />
+                        View Quizzes
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {quizViewMode === "list" ? (
+                  <div className="space-y-4">
+                    {quizzes.map((quiz) => (
+                      <div
+                        key={quiz._id}
+                        className="border border-gray-700 rounded-lg p-4"
+                      >
+                        <div className="flex justify-between items-center">
+                          <h4 className="font-medium">{quiz.title}</h4>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEditQuiz(quiz)}
+                              className="text-blue-400 hover:text-blue-500"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteQuiz(quiz._id)}
+                              className="text-red-400 hover:text-red-500"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-400">
+                          Duration: {quiz.duration} minutes
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          Questions: {quiz.questions.length}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+              <QuizForm
+                courseId={selectedCourse._id}
+                subjectId={selectedSubject._id}
+                chapterId={selectedChapter._id}
+                initialData={quizViewMode === "edit" ? quizForm : null}
+                onSuccess={() => {
+                  setQuizViewMode("list");
+                  fetchChapterQuizzes(selectedChapter._id);
+                }}
+              />
+                )}
+              </div>
+            )}
+          </div>
         )}
-      </div>
-    )}
-  </div>
-)}
       </div>
     </div>
   );

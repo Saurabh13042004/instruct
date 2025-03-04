@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { Plus, Trash2, Image as ImageIcon } from 'lucide-react';
 import API from '../../api';
 import { toast } from 'react-hot-toast';
 
-const QuizForm = ({ courseId, subjectId, chapterId, onSuccess }) => {
-  const [formData, setFormData] = useState({
+const QuizForm = ({ courseId, subjectId, chapterId, initialData, onSuccess }) => {
+  const [formData, setFormData] = useState(initialData || {
     title: '',
-    duration: 30, // minutes
+    duration: 30,
     questions: [
       {
         question: '',
@@ -17,6 +17,13 @@ const QuizForm = ({ courseId, subjectId, chapterId, onSuccess }) => {
       }
     ]
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    }
+  }, [initialData]);
+
 
   const handleQuestionChange = (index, field, value) => {
     const newQuestions = [...formData.questions];

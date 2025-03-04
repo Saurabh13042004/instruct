@@ -15,7 +15,7 @@ import 'swiper/css/autoplay';     // Autoplay module
 function HomePage() {
   return (
     <>
-      <main>
+      <main className="w-screen">
         {/* --------------------------------
             Slider Section (Hero / Banner)
         -------------------------------- */}

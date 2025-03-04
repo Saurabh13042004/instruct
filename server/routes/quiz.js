@@ -93,6 +93,19 @@ router.get(
   }
 );
 
+
+router.delete("/:quizId", authenticateToken, async (req, res) => {
+  try {
+    const quiz = await Quiz.findByIdAndDelete(req.params.quizId);
+    if (!quiz) {
+      return res.status(404).json({ success: false, message: "Quiz not found" });
+    }
+    res.status(200).json({ success: true, message: "Quiz deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 router.get("/chapter/:chapterId", authenticateToken, async (req, res) => {
   try {
     const quizzes = await Quiz.find({
