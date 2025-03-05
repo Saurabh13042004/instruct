@@ -1,7 +1,7 @@
 import React from 'react';
 // 1) Import Swiper & modules
 import { Swiper, SwiperSlide } from 'swiper/react';
-
+import { BookAIcon, BookOpen } from 'lucide-react';
 // 2) Import ONLY what you need from 'swiper/modules'
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 
@@ -112,11 +112,12 @@ function HomePage() {
                   We'll enable navigation & autoplay via modules
                 */}
                 <Swiper
-                  modules={[Navigation, Pagination, Autoplay]}
+                  modules={[Autoplay]}
                   spaceBetween={30}
                   slidesPerView={3}
-                  navigation
+                  navigation={false}
                   loop
+                  speed={500}
                   autoplay={{ delay: 3000, disableOnInteraction: false }}
                   breakpoints={{
                     0: { slidesPerView: 1 },
@@ -225,7 +226,7 @@ function HomePage() {
                 </div>
                 <div className="col-xl-6 col-lg-6 col-md-6">
                   <div
-                    className="what-box text-center mb-35 wow fadeInUp2 animated"
+                    className="what-box flex flex-col items-center justify-center text-center mb-35 wow fadeInUp2 animated"
                     data-wow-delay=".3s"
                   >
                     <div className="what-box__icon mb-30" />
@@ -252,14 +253,14 @@ function HomePage() {
                   <div className="col-xl-7 col-lg-7">
                     <div className="chose-img-wrapper mb-50 pos-rel">
                       <div className="feature tag_01">
-                        <span>
-                          <img src="assets/img/icon/shield-check.svg" alt="" />
+                      <span className="flex items-center justify-center w-full h-full">
+                          <BookAIcon size={24} className="text-current" />
                         </span>
                         Quality education
                       </div>
                       <div className="feature tag_02">
-                        <span>
-                          <img src="assets/img/icon/catalog.svg" alt="" />
+                        <span className="flex items-center justify-center w-full h-full">
+                          <BookOpen size={24} className="text-current" />
                         </span>
                         Quality Material
                       </div>
@@ -348,16 +349,21 @@ function HomePage() {
               Swiper Carousel for Testimonials 
             */}
             <Swiper
-              modules={[Navigation, Pagination, Autoplay]}
+              modules={[Autoplay]}
               spaceBetween={30}
-              slidesPerView={4}
-              navigation
+              slidesPerView={3}
+              navigation={false}
               loop
-              autoplay={{ delay: 2500, disableOnInteraction: false }}
+              speed={500}
+              autoplay={{
+                delay: 3000,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true
+              }}
               breakpoints={{
                 0: { slidesPerView: 1 },
                 576: { slidesPerView: 2 },
-                992: { slidesPerView: 4 },
+                992: { slidesPerView: 3 },
               }}
               className="testimonial-active-01 mt-4"
             >

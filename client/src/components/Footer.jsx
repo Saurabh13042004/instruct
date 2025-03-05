@@ -1,4 +1,5 @@
 import React from 'react';
+import { Youtube, Send, Linkedin, MessageCircleMore } from 'lucide-react';
 
 function Footer() {
   return (

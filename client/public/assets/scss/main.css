@@ -5408,8 +5408,9 @@ input.main-search-input:-ms-input-placeholder {
   display: inline-block;
   text-align: center;
   line-height: 50px;
-  background-color: #FF723A;
+  background-color: #b16901;
   margin-right: 23px;
+  display: flex;
 }
 
 .feature span i {
@@ -5417,9 +5418,13 @@ input.main-search-input:-ms-input-placeholder {
 }
 
 .feature.tag_01 {
-  top: 60px;
+  top: 610px;
   left: -32px;
   font-weight: 600;
+  border-radius: 200px;
+  color: #000;
+  display: flex;
+  align-items: center;
 }
 
 .feature.tag_01 span {
@@ -5429,9 +5434,15 @@ input.main-search-input:-ms-input-placeholder {
 .feature.tag_02 {
   right: 10px;
   top: 152px;
+  display: flex;
+  justify-content: center;
   font-weight: 600;
-}
+  border-radius: 200px;
+  color: #000;
+  justify-items: center;
+  align-items: center;
 
+}
 .feature.tag_02 span {
   background-color: #8E66FF;
 }
