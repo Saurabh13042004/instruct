@@ -59,7 +59,7 @@ function Contact() {
                                         <img src="assets/img/icon/phone-alt.svg" alt=""/>
                                         </div>
                                         <div className="contact__text">
-                                            <h5>+91 7988760028 </h5>
+                                            <h5>+91 08062180973 </h5>
                                         </div>
                                     </div>
                                     <div className="single-contact-box cb-3 mb-30">
