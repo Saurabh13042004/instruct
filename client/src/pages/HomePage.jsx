@@ -10,16 +10,17 @@ import 'swiper/css';              // core Swiper CSS
 import 'swiper/css/navigation';   // Navigation module
 import 'swiper/css/pagination';   // Pagination module
 import 'swiper/css/autoplay';     // Autoplay module
-
+import useScrollAnimation from '../hooks/useScrollAnimation';
 
 function HomePage() {
+  useScrollAnimation();
   return (
     <>
       <main className="w-screen">
         {/* --------------------------------
             Slider Section (Hero / Banner)
         -------------------------------- */}
-        <section className="slider-area pt-180 pt-xs-150 pt-150 pb-xs-35">
+        <section className="slider-area pt-180 pt-xs-150 pt-150 pb-xs-35 scroll-fade-in">
           <img className="sl-shape shape_01" src="./assets/img/icon/01.svg" alt="" />
           <img className="sl-shape shape_02" src="assets/img/icon/puzzle.svg" alt="" />
           <img className="sl-shape shape_03" src="assets/img/icon/03.svg" alt="/" />
@@ -92,7 +93,7 @@ function HomePage() {
         {/* --------------------------------
             Features Carousel Section
         -------------------------------- */}
-        <section className="great-deal-area pt-150 pb-90 pt-md-100 pb-md-40 pt-xs-100 pb-xs-40">
+        <section className="great-deal-area pt-150 pb-90 pt-md-100 pb-md-40 pt-xs-100 pb-xs-40 scroll-fade-in">
           <div className="container">
             <div className="row justify-content-lg-center justify-content-start">
               <div className="col-xl-3 col-lg-8">
@@ -190,7 +191,7 @@ function HomePage() {
         {/* --------------------------------
             What Are You Looking For?
         -------------------------------- */}
-        <section className="what-looking-for pos-rel">
+        <section className="what-looking-for pos-rel scroll-fade-in">
           <div className="what-blur-shape-one"></div>
           <div className="what-blur-shape-two"></div>
           <div className="what-look-bg gradient-bg pt-145 pb-130 pt-md-95 pb-md-80 pt-xs-95 pb-xs-80">
@@ -245,7 +246,7 @@ function HomePage() {
         {/* --------------------------------
             Why Choose Us
         -------------------------------- */}
-        <div className="why-chose-section-wrapper gradient-bg mr-100 ml-100">
+        <div className="why-chose-section-wrapper gradient-bg mr-100 ml-100 scroll-fade-in">
           <section className="why-chose-us">
             <div className="why-chose-us-bg pt-150 pb-175 pt-md-95 pb-md-90 pt-xs-95 pb-xs-90">
               <div className="container">
@@ -335,7 +336,7 @@ function HomePage() {
         {/* --------------------------------
             Testimonial Carousel Section
         -------------------------------- */}
-        <section className="testimonial-area testimonial-pad pt-150 pb-120 pt-md-95 pb-md-70 pt-xs-95 pb-xs-70">
+        <section className="testimonial-area testimonial-pad pt-150 pb-120 pt-md-95 pb-md-70 pt-xs-95 pb-xs-70 scroll-fade-in">
           <div className="container custom-container-testimonial">
             <div className="row align-items-center">
               <div className="col-lg-8">
