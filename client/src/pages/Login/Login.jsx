@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import API from "../../../api";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, LogIn, User } from "lucide-react";
@@ -8,6 +8,44 @@ function Login({ onSuccess, onRegisterClick }) {
   const [form, setForm] = useState({ email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  
+  // Particle animation state
+  const [particles, setParticles] = useState([]);
+  
+  // Generate particles on component mount
+  useEffect(() => {
+    const generateParticles = () => {
+      const newParticles = [];
+      for (let i = 0; i < 30; i++) {
+        newParticles.push({
+          id: i,
+          x: Math.random() * 100,
+          y: Math.random() * 100,
+          size: Math.random() * 3 + 1,
+          opacity: Math.random() * 0.5 + 0.1,
+          speed: Math.random() * 0.5 + 0.1,
+          direction: Math.random() > 0.5 ? 1 : -1
+        });
+      }
+      setParticles(newParticles);
+    };
+    
+    generateParticles();
+    
+    // Animate particles
+    const animationInterval = setInterval(() => {
+      setParticles(prevParticles => 
+        prevParticles.map(particle => ({
+          ...particle,
+          x: (particle.x + particle.speed * particle.direction) % 100,
+          y: (particle.y + particle.speed * 0.5 * particle.direction) % 100,
+          opacity: Math.max(0.1, Math.min(0.6, particle.opacity + (Math.random() * 0.1 - 0.05)))
+        }))
+      );
+    }, 50);
+    
+    return () => clearInterval(animationInterval);
+  }, []);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -41,17 +79,36 @@ function Login({ onSuccess, onRegisterClick }) {
   };
 
   return (
-    <div className="min-h-auto w-full max-w-md overflow-hidden bg-dark rounded-2xl shadow-[0_0_25px_5px_rgba(76,29,149,0.15)]">
+    <div className="min-h-auto w-full max-w-md overflow-hidden bg-dark rounded-2xl shadow-[0_0_25px_5px_rgba(76,29,149,0.15)] relative">
+      {/* Floating Particles */}
+      <div className="absolute inset-0 overflow-hidden">
+        {particles.map(particle => (
+          <div
+            key={particle.id}
+            className="absolute rounded-full bg-white"
+            style={{
+              left: `${particle.x}%`,
+              top: `${particle.y}%`,
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
+              opacity: particle.opacity,
+              boxShadow: `0 0 ${particle.size * 2}px rgba(255, 255, 255, ${particle.opacity})`,
+              filter: 'blur(1px)'
+            }}
+          />
+        ))}
+      </div>
+      
       <div className="relative">
         {/* Decorative Elements */}
-        <div className="absolute inset-0 transform rotate-12 rounded-3xl " />
+        <div className="absolute inset-0 transform rotate-12 rounded-3xl" />
         
-        <div className="relative p-8 rounded-2xl shadow-2xl border border-gray-800">
+        <div className="relative p-8 rounded-2xl shadow-2xl border border-gray-800 backdrop-filter backdrop-blur-sm bg-gray-900/60">
           <div className="mb-8 text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-900 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-800 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
               <User size={32} className="text-gray-100" />
             </div>
-            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600">
               Welcome Back
             </h1>
             <p className="text-gray-400 mt-2">
@@ -77,7 +134,7 @@ function Login({ onSuccess, onRegisterClick }) {
                     onChange={handleChange}
                     value={form.email}
                     className="w-full pl-10 pr-4 py-2.5 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
-                             focus:outline-none focus:ring-2 focus:ring-purple-500/70 focus:border-purple-500
+                             focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500
                              placeholder-gray-500 transition-all duration-200"
                     placeholder="Enter your email"
                     required
@@ -102,7 +159,7 @@ function Login({ onSuccess, onRegisterClick }) {
                     onChange={handleChange}
                     value={form.password}
                     className="w-full pl-10 pr-4 py-2.5 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
-                             focus:outline-none focus:ring-2 focus:ring-purple-500/70 focus:border-purple-500
+                             focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500
                              placeholder-gray-500 transition-all duration-200"
                     placeholder="Enter your password"
                     required
@@ -114,11 +171,14 @@ function Login({ onSuccess, onRegisterClick }) {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-purple-800 text-white text-sm font-semibold
-                       rounded-xl hover:from-purple-700 hover:to-purple-900 transition-all duration-200
-                       focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-1 
+              className="w-full py-2.5 text-white text-sm font-semibold
+                       rounded-xl transition-all duration-200
+                       focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:ring-offset-1 
                        focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed
                        flex items-center justify-center gap-2"
+              style={{
+                background: "linear-gradient(135deg, #eb9f18, #b16901)"
+              }}
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -169,13 +229,13 @@ function Login({ onSuccess, onRegisterClick }) {
             <div className="mt-6 flex items-center justify-between text-sm text-gray-400">
               <Link
                 to="/forgot-password"
-                className="text-purple-400 hover:text-purple-300 transition-colors duration-200"
+                className="text-amber-400 hover:text-amber-300 transition-colors duration-200"
               >
                 Forgot password?
               </Link>
               <Link
                 onClick={onRegisterClick}
-                className="text-purple-400 hover:text-purple-300 transition-colors duration-200"
+                className="text-amber-400 hover:text-amber-300 transition-colors duration-200"
               >
                 Create an account
               </Link>
