@@ -25,6 +25,15 @@
   transform: translateY(0);
 }
 
+.vec-shape {
+  display: inline-block;
+  vertical-align: middle; /* Aligns the image with the text */
+}
+
+.vec-shape img {
+  height: 2em; /* Adjust the size of the image to match the text */
+  margin-left: 5px; /* Add some spacing between "with" and the image */
+}
 
 .nav-item a:hover {
   /* red color in hover */

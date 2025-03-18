@@ -68,9 +68,8 @@ function HomePage() {
                       data-wow-delay=".1s"
                     >
                       Learn Lead Excel <br />
-                      with
-                      <span className="vec-shape">
-                        <img src="assets/img/logo/instvec.svg" alt="" />
+                      with <span className="vec-shape inline-block">
+                        <img src="assets/img/logo/instvec.svg" alt="Instruct Logo" />
                       </span>
                     </h1>
                     <h5
@@ -254,7 +253,7 @@ function HomePage() {
                   <div className="col-xl-7 col-lg-7">
                     <div className="chose-img-wrapper mb-50 pos-rel">
                       <div className="feature tag_01">
-                      <span className="flex items-center justify-center w-full h-full">
+                        <span className="flex items-center justify-center w-full h-full">
                           <BookAIcon size={24} className="text-current" />
                         </span>
                         Quality education
