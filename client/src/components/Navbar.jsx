@@ -25,7 +25,7 @@ const customModalStyles = {
   },
   content: {
     position: "relative",
-    background: "transparent", 
+    background: "transparent",
     border: "none",
     borderRadius: "8px",
     padding: 0,
@@ -73,8 +73,15 @@ function Navbar() {
 
   return (
     <>
-      <header>
-      <div id="theme-menu-one" className="main-header-area pl-100 pr-100 pt-20 pb-15">
+      <header style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 1000,
+        backgroundColor: "#121212", // Adjust background color as needed
+        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)", // Optional: Add a shadow for better visibility
+      }}
+      >
+        <div id="theme-menu-one" className="main-header-area pl-100 pr-100 pt-20 pb-15">
           <div className="container-fluid">
             <div className="row align-items-center">
               {/* Logo Section */}
@@ -110,8 +117,8 @@ function Navbar() {
                 </nav>
               </div>
 
-          {/* Right Section (Login / MyCourses, User Icon, Mobile Toggler) */}
-          <div className="col-xl-3 col-lg-2 col-7">
+              {/* Right Section (Login / MyCourses, User Icon, Mobile Toggler) */}
+              <div className="col-xl-3 col-lg-2 col-7">
                 <div className="right-nav d-flex align-items-center justify-content-end">
                   <div className="right-btn mr-25 mr-xs-15 d-none d-lg-block">
                     <ul className="d-flex align-items-center">
@@ -173,7 +180,7 @@ function Navbar() {
                             marginBottom: "0.5rem",
                           }}
                         >
-                        Profile
+                          Profile
                         </button>
                         <button
                           onClick={handleLogout}
@@ -191,10 +198,10 @@ function Navbar() {
                         </button>
                       </div>
                     )}
-                        </div>
+                  </div>
                   {/* Hamburger Menu */}
                   <div className="hamburger-menu d-lg-none">
-                    <button 
+                    <button
                       onClick={() => setMenuOpen(!menuOpen)}
                       className="menu-toggle"
                       aria-label="Toggle menu"
@@ -292,13 +299,13 @@ function Navbar() {
 
       {/* Profile Modal */}
       <Modal
-  isOpen={showProfileModal}
-  onRequestClose={() => setShowProfileModal(false)}
-  style={customModalStyles}
-  contentLabel="Profile Modal"
->
-  <ProfileSystem onClose={() => setShowProfileModal(false)} />
-</Modal>
+        isOpen={showProfileModal}
+        onRequestClose={() => setShowProfileModal(false)}
+        style={customModalStyles}
+        contentLabel="Profile Modal"
+      >
+        <ProfileSystem onClose={() => setShowProfileModal(false)} />
+      </Modal>
     </>
   );
 }

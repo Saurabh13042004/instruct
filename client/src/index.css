@@ -14,6 +14,17 @@
 }
 @import "tailwindcss";
 
+
+
+
+.nav-item a:hover {
+  /* red color in hover */
+  color: #ff0000;
+}
+.nav-item a.active {
+  color: #646cff;
+}
+
 a {
   font-weight: 500;
   color: #646cff;

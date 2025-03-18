@@ -67,7 +67,7 @@ function HomePage() {
                       data-wow-delay=".1s"
                     >
                       Learn Lead Excel <br />
-                      with{' '}
+                      with
                       <span className="vec-shape">
                         <img src="assets/img/logo/instvec.svg" alt="" />
                       </span>
