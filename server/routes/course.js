@@ -139,7 +139,7 @@ router.delete("/deleteCourse/:courseId", authenticateToken, async (req, res) => 
 });
 
 
-router.get("/course/:courseId", authenticateToken, async (req, res) => {
+router.get("/course/:courseId", async (req, res) => {
     try {
         // Use .select("-subjects") to omit the nested course material
         const course = await Course.findById(req.params.courseId).select("-subjects");
@@ -153,8 +153,8 @@ router.get("/course/:courseId", authenticateToken, async (req, res) => {
 });
 
 
-// Get all courses (for admin or for listing to students)
-router.get("/getAllCourses", authenticateToken, async (req, res) => {
+// Get all courses (public access)
+router.get("/getAllCourses", async (req, res) => {
     try {
         const courses = await Course.find();
         if (!courses.length) {

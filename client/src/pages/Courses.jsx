@@ -8,22 +8,24 @@ function Courses() {
   const [myCourses, setMyCourses] = useState([]);
   // activeTab can be "all" or "my"
   const [activeTab, setActiveTab] = useState("all");
+  const [loading, setLoading] = useState(true);
 
   // Check if the user is authenticated
   const token = localStorage.getItem("token");
 
-  // Fetch all courses
+  // Fetch all courses - no authentication required
   const fetchAllCourses = async () => {
     try {
-      const res = await API.get("/courses/getAllCourses", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      setLoading(true);
+      const res = await API.get("/courses/getAllCourses");
       if (res.data.success) {
         setCourses(res.data.courses);
       }
     } catch (error) {
       console.error(error);
       toast.error("Failed to fetch courses");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -42,6 +44,7 @@ function Courses() {
     }
   };
 
+
   useEffect(() => {
     fetchAllCourses();
     if (token) {
@@ -53,7 +56,7 @@ function Courses() {
   const displayCourses = activeTab === "all" ? courses : myCourses;
 
   return (
-    <div>
+    <div className="w-screen">
       <section className="feature-course pt-150 pb-130 pt-md-95 pb-md-80 pt-xs-95 pb-xs-80">
         <div className="container">
           <div className="row">

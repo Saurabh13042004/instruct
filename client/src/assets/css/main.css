@@ -5494,17 +5494,32 @@ input.main-search-input:-ms-input-placeholder {
   font-weight: 600;
   border-radius: 200px;
   color: #000;
-  display: flex;
+  display: none;
   align-items: center;
 }
 
 .feature.tag_01 span {
   background-color: #092c50;
 }
+
+@media (min-width: 767px) {
+  .feature {
+    display: flex!important;
+  }
+  .feature.tag_01{
+    display: flex!important;
+  }
+  .feature.tag_02{
+    display: flex!important;
+  }
+}
+
+
+
 .feature.tag_02 {
   right: 10px;
   top: 152px;
-  display: flex;
+  display: none;
   justify-content: center;
   font-weight: 600;
   border-radius: 200px;

@@ -1,6 +1,6 @@
 function About() {
     return (
-        <div>
+        <div className="w-screen">
             <main>
                 {/*about-us-area start*/}
                 <section className="about-us-area pt-150 pb-10 pt-md-100 pb-md-70 pt-xs-100 pb-xs-70">

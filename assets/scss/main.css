@@ -5423,7 +5423,7 @@ input.main-search-input:-ms-input-placeholder {
   font-weight: 600;
   border-radius: 200px;
   color: #000;
-  display: flex;
+  display: none;
   align-items: center;
 }
 
@@ -5434,7 +5434,7 @@ input.main-search-input:-ms-input-placeholder {
 .feature.tag_02 {
   right: 10px;
   top: 152px;
-  display: flex;
+  display: none;
   justify-content: center;
   font-weight: 600;
   border-radius: 200px;
@@ -5443,6 +5443,20 @@ input.main-search-input:-ms-input-placeholder {
   align-items: center;
 
 }
+
+
+@media (min-width: 767px) {
+  .feature {
+    display: flex!important;
+  }
+  .feature.tag_01{
+    display: flex!important;
+  }
+  .feature.tag_02{
+    display: flex!important;
+  }
+}
+
 
 .feature.tag_02 span {
   background-color: #8E66FF;

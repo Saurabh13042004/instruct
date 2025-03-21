@@ -34,6 +34,14 @@ const [hoveredRating, setHoveredRating] = useState(0);
   // Buy Now handler triggers Razorpay checkout flow.
   const handleBuyNow = async () => {
     try {
+
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login to purchase the course.");
+        navigate("/login");
+        return;
+      }
       // 1. Create order on the backend.
       const orderResponse = await API.post(
         "/payment/create-order",
@@ -235,10 +243,8 @@ const reviewSection = `
 `;
   // Fetch course details.
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    API.get(`/courses/course/${courseId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    // const token = localStorage.getItem("token");
+    API.get(`/courses/course/${courseId}`)
       .then((res) => {
         setCourse(res.data.course);
         // Set the finalPrice initially to the discountPrice.
@@ -287,7 +293,7 @@ const reviewSection = `
   if (!course) return <p>Course not found!</p>;
 
   return (
-    <div>
+    <div className="w-screen">
       <main>
         <section className="course-details-area pt-150 pb-120 pt-md-100 pb-md-70 pt-xs-100 pb-xs-70">
           <div className="container p-8">
@@ -398,11 +404,16 @@ const reviewSection = `
                     )}
                   </div>
                   <div className="cart-btn offer_btn mt-4">
+
+
+
+
                     {purchased ? (
                       <div onClick={() => navigate(`/course-content/${courseId}`)}>
                         View Course
                       </div>
                     ) : (
+
                       <div onClick={handleBuyNow}>Buy Now 🎓</div>
                     )}
                   </div>

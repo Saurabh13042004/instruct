@@ -1,5 +1,6 @@
 import React from 'react';
-import { Youtube, Send, Linkedin, MessageCircleMore } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faYoutube, faTelegram, faWhatsapp, faLinkedinIn } from '@fortawesome/free-brands-svg-icons';
 
 function Footer() {
   return (
@@ -15,10 +16,18 @@ function Footer() {
               </div>
               <p>"The goal of education is not to teach the facts, but to teach how to think critically and observe the world."- Founder</p>
               <div className="social-media footer__social mt-30">
-                <a href="https://www.youtube.com/@Instruct-edu?sub_confirmation=1" target="_blank" rel="noopener noreferrer"><i className="fab fa-youtube"></i></a>
-                <a href="https://t.me/instructedu" target="_blank" rel="noopener noreferrer"><i className="fab fa-telegram-plane"></i></a>
-                <a href="https://whatsapp.com/channel/0029VapAEFwIt5rn5nNfnx05" target="_blank" rel="noopener noreferrer"><i className="fab fa-whatsapp"></i></a>
-                <a href="https://www.linkedin.com/in/instruct-edu-a81329333/" target="_blank" rel="noopener noreferrer"><i className="fab fa-linkedin-in"></i></a>
+                <a href="https://www.youtube.com/@Instruct-edu?sub_confirmation=1" target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faYoutube} />
+                </a>
+                <a href="https://t.me/instructedu" target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faTelegram} />
+                </a>
+                <a href="https://whatsapp.com/channel/0029VapAEFwIt5rn5nNfnx05" target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faWhatsapp} />
+                </a>
+                <a href="https://www.linkedin.com/in/instruct-edu-a81329333/" target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faLinkedinIn} />
+                </a>
               </div>
             </div>
           </div>
@@ -39,7 +48,7 @@ function Footer() {
             <div className="row align-items-center">
               <div className="col-lg-12">
                 <div className="copyright text-center">
-                  <h5>Copyright@ 2024 <a href="login2.html">Instruct</a>. All Rights Reserved</h5>
+                  <h5>Copyright@ 2025 <a href="login2.html">Instruct</a>. All Rights Reserved</h5>
                 </div>
               </div>
             </div>

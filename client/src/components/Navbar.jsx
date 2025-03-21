@@ -9,6 +9,19 @@ import Register from "../pages/Register";
 // Set the app element for accessibility
 Modal.setAppElement("#root");
 
+
+
+const navItemStyles = {
+  link: {
+    color: "white",
+    transition: "color 0.3s ease",
+  },
+  linkHover: {
+    color: "#EB9F18",
+  }
+};
+
+
 const customModalStyles = {
   overlay: {
     position: "fixed",
@@ -99,18 +112,49 @@ function Navbar() {
                   <div className={`nav-container ${menuOpen ? 'mobile-nav' : ''}`}>
                     <ul className="flex justify-content-between gap-5">
                       <li className="nav-item">
-                        <Link className="text-white" to="/" onClick={() => setMenuOpen(false)}>
+                        <Link
+                          className="text-white"
+                          to="/"
+                          onClick={() => setMenuOpen(false)}
+                          style={navItemStyles.link}
+                          onMouseEnter={(e) => e.target.style.color = "#EB9F18"}
+                          onMouseLeave={(e) => e.target.style.color = "white"}
+                        >
                           Home
                         </Link>
                       </li>
                       <li className="nav-item">
-                        <Link to="/courses" onClick={() => setMenuOpen(false)}>Courses</Link>
+                        <Link
+                          to="/courses"
+                          onClick={() => setMenuOpen(false)}
+                          style={navItemStyles.link}
+                          onMouseEnter={(e) => e.target.style.color = "#EB9F18"}
+                          onMouseLeave={(e) => e.target.style.color = "white"}
+                        >
+                          Courses
+                        </Link>
                       </li>
                       <li className="nav-item">
-                        <Link to="/about" onClick={() => setMenuOpen(false)}>About Us</Link>
+                        <Link
+                          to="/about"
+                          onClick={() => setMenuOpen(false)}
+                          style={navItemStyles.link}
+                          onMouseEnter={(e) => e.target.style.color = "#EB9F18"}
+                          onMouseLeave={(e) => e.target.style.color = "white"}
+                        >
+                          About Us
+                        </Link>
                       </li>
                       <li className="nav-item">
-                        <Link to="/contact" onClick={() => setMenuOpen(false)}>Contact</Link>
+                        <Link
+                          to="/contact"
+                          onClick={() => setMenuOpen(false)}
+                          style={navItemStyles.link}
+                          onMouseEnter={(e) => e.target.style.color = "#EB9F18"}
+                          onMouseLeave={(e) => e.target.style.color = "white"}
+                        >
+                          Contact
+                        </Link>
                       </li>
                     </ul>
                   </div>

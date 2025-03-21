@@ -3,7 +3,7 @@ import React from 'react';
 
 function Contact() {
     return (
-        <div>
+        <div className='w-screen'>
             {/* preloader end  */}
 
             {/* slide-bar start */}
@@ -117,7 +117,7 @@ function Contact() {
                 {/*contact-form-area end */}
             </main>
             {/*footer-area start*/}
-            <footer className="footer-area pt-70 pb-40">
+            {/* <footer className="footer-area pt-70 pb-40">
                 <div className="container">
                     <div className="row mb-15">
                         <div className="col-xl-3 col-lg-4 col-md-6  wow fadeInUp2 animated" data-wow-delay=".1s">
@@ -158,7 +158,7 @@ function Contact() {
                                 </div>
                             </div>
                         </div>
-                    </div></div></footer>
+                    </div></div></footer> */}
             {/*footer-area end*/}
             {/* JS here */}
         </div>

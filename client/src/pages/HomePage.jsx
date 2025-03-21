@@ -252,15 +252,15 @@ function HomePage() {
                 <div className="row align-items-center">
                   <div className="col-xl-7 col-lg-7">
                     <div className="chose-img-wrapper mb-50 pos-rel">
-                      <div className="feature tag_01">
+                      <div className="feature tag_01 md:hidden">
                         <span className="flex items-center justify-center w-full h-full">
-                          <BookAIcon size={24} className="text-current" />
+                          <BookAIcon size={24} className="text-current" color='white' />
                         </span>
                         Quality education
                       </div>
                       <div className="feature tag_02">
                         <span className="flex items-center justify-center w-full h-full">
-                          <BookOpen size={24} className="text-current" />
+                          <BookOpen size={24} className="text-current" color='white' />
                         </span>
                         Quality Material
                       </div>
