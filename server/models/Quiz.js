@@ -17,7 +17,11 @@ const questionSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  imageUrl: String
+  imageUrl: String,
+  solution: {
+    text: String,
+    videoUrl: String
+  }
 });
 
 const quizSchema = new mongoose.Schema({

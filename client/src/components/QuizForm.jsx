@@ -13,7 +13,11 @@ const QuizForm = ({ courseId, subjectId, chapterId, initialData, onSuccess }) =>
         options: ['', '', '', ''],
         correctAnswer: 0,
         imageFile: null,
-        hasImage: false
+        hasImage: false,
+        solution: {
+          text: "",
+          videoUrl: ""
+        }
       }
     ]
   });
@@ -54,7 +58,11 @@ const QuizForm = ({ courseId, subjectId, chapterId, initialData, onSuccess }) =>
           options: ['', '', '', ''],
           correctAnswer: 0,
           imageFile: null,
-          hasImage: false
+          hasImage: false,
+          solution: {
+            text: "",
+            videoUrl: ""
+          }
         }
       ]
     });
@@ -63,7 +71,7 @@ const QuizForm = ({ courseId, subjectId, chapterId, initialData, onSuccess }) =>
   const removeQuestion = (index) => {
     const newQuestions = [...formData.questions];
     newQuestions.splice(index, 1);
-    setFormData({ ...formData, questions: newQuestions });
+ quizForm.questions.map(   setFormData({ ...formData, questions: newQuestions });
   };
 
   const handleSubmit = async (e) => {
@@ -81,7 +89,8 @@ const QuizForm = ({ courseId, subjectId, chapterId, initialData, onSuccess }) =>
             question: q.question,
             options: q.options,
             correctAnswer: q.correctAnswer,
-            hasImage: !!q.imageFile
+            hasImage: !!q.imageFile,
+            solution: q.solution
         }));
 
         // Add images if present
@@ -110,125 +119,165 @@ const QuizForm = ({ courseId, subjectId, chapterId, initialData, onSuccess }) =>
         toast.error('Failed to create quiz');
     }
 };
-
+const handleSolutionChange = (questionIndex, field, value) => {
+  const newQuestions = [...formData.questions];
+  if (!newQuestions[questionIndex].solution) {
+    newQuestions[questionIndex].solution = { text: "", videoUrl: "" };
+  }
+  newQuestions[questionIndex].solution[field] = value;
+  setFormData({ ...formData, questions: newQuestions });
+};
 
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium mb-1">Quiz Title</label>
-        <input
-          type="text"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
-          required
-        />
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Duration (minutes)</label>
-        <input
-          type="number"
-          value={formData.duration}
-          onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-          className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
-          required
-          min="1"
-        />
-      </div>
-
-      <div className="space-y-6">
-        {formData.questions.map((question, qIndex) => (
-          <div key={qIndex} className="border border-gray-700 rounded-lg p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Question {qIndex + 1}</h3>
-              {qIndex > 0 && (
-                <button
-                  type="button"
-                  onClick={() => removeQuestion(qIndex)}
-                  className="text-red-500 hover:text-red-600"
-                >
-                  <Trash2 size={20} />
-                </button>
-              )}
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Question Text</label>
-                <input
-                  type="text"
-                  value={question.question}
-                  onChange={(e) => handleQuestionChange(qIndex, 'question', e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  required
-                />
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium mb-1">Quiz Title</label>
+          <input
+            type="text"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+  
+        <div>
+          <label className="block text-sm font-medium mb-1">Duration (minutes)</label>
+          <input
+            type="number"
+            value={formData.duration}
+            onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+            required
+            min="1"
+          />
+        </div>
+  
+        <div className="space-y-6">
+          {formData.questions.map((question, qIndex) => (
+            <div key={qIndex} className="border border-gray-700 rounded-lg p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium">Question {qIndex + 1}</h3>
+                {qIndex > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => removeQuestion(qIndex)}
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                )}
               </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  <div className="flex items-center gap-2">
-                    <ImageIcon size={16} />
-                    Question Image (optional)
-                  </div>
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload(qIndex, e.target.files[0])}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="space-y-3">
-                {question.options.map((option, oIndex) => (
-                  <div key={oIndex}>
-                    <label className="flex items-center gap-2 text-sm font-medium mb-1">
+  
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Question Text</label>
+                  <input
+                    type="text"
+                    value={question.question}
+                    onChange={(e) => handleQuestionChange(qIndex, 'question', e.target.value)}
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+  
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    <div className="flex items-center gap-2">
+                      <ImageIcon size={16} />
+                      Question Image (optional)
+                    </div>
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(qIndex, e.target.files[0])}
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+  
+                <div className="space-y-3">
+                  {question.options.map((option, oIndex) => (
+                    <div key={oIndex}>
+                      <label className="flex items-center gap-2 text-sm font-medium mb-1">
+                        <input
+                          type="radio"
+                          name={`correct-${qIndex}`}
+                          checked={question.correctAnswer === oIndex}
+                          onChange={() => handleQuestionChange(qIndex, 'correctAnswer', oIndex)}
+                          className="text-blue-500"
+                          required
+                        />
+                        Option {oIndex + 1}
+                      </label>
                       <input
-                        type="radio"
-                        name={`correct-${qIndex}`}
-                        checked={question.correctAnswer === oIndex}
-                        onChange={() => handleQuestionChange(qIndex, 'correctAnswer', oIndex)}
-                        className="text-blue-500"
+                        type="text"
+                        value={option}
+                        onChange={(e) => handleOptionChange(qIndex, oIndex, e.target.value)}
+                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
                         required
                       />
-                      Option {oIndex + 1}
-                    </label>
-                    <input
-                      type="text"
-                      value={option}
-                      onChange={(e) => handleOptionChange(qIndex, oIndex, e.target.value)}
+                    </div>
+                  ))}
+                </div>
+  
+                {/* Solution Section */}
+                <div className="mt-4 p-4 border border-gray-600 rounded-lg">
+                  <h4 className="text-md font-medium mb-3">Solution (shown after quiz submission)</h4>
+                  
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium mb-1">Solution Text</label>
+                    <textarea
+                      value={question.solution?.text || ""}
+                      onChange={(e) => handleSolutionChange(qIndex, 'text', e.target.value)}
                       className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      required
+                      rows={3}
+                      placeholder="Explain the correct answer..."
                     />
                   </div>
-                ))}
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      <div className="flex items-center gap-2">
+                        <Video size={16} />
+                        Solution Video URL (optional)
+                      </div>
+                    </label>
+                    <input
+                      type="url"
+                      value={question.solution?.videoUrl || ""}
+                      onChange={(e) => handleSolutionChange(qIndex, 'videoUrl', e.target.value)}
+                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://www.youtube.com/watch?v=..."
+                    />
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex gap-4">
-        <button
-          type="button"
-          onClick={addQuestion}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
-        >
-          <Plus size={20} />
-          Add Question
-        </button>
-
-        <button
-          type="submit"
-          className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-        >
-          Create Quiz
-        </button>
-      </div>
-    </form>
-  );
-};
-
-export default QuizForm;
+          ))}
+        </div>
+  
+        <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={addQuestion}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
+          >
+            <Plus size={20} />
+            Add Question
+          </button>
+  
+          <button
+            type="submit"
+            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Create Quiz
+          </button>
+        </div>
+      </form>
+    );
+  };
+  
+  export default QuizForm;
