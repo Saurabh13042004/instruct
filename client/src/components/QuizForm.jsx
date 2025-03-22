@@ -71,7 +71,7 @@ const QuizForm = ({ courseId, subjectId, chapterId, initialData, onSuccess }) =>
   const removeQuestion = (index) => {
     const newQuestions = [...formData.questions];
     newQuestions.splice(index, 1);
- quizForm.questions.map(   setFormData({ ...formData, questions: newQuestions });
+    quizForm.questions.map(setFormData({ ...formData, questions: newQuestions }))
   };
 
   const handleSubmit = async (e) => {
