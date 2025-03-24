@@ -19,6 +19,7 @@ import CourseContentDetail from './pages/CourseContentDetail';
 import Contact from './pages/Contact';
 import { Toaster } from 'react-hot-toast';
 import Quiz from './pages/Quiz';
+import TermsConditions from './pages/TermsConditions';
 
 
 
@@ -43,6 +44,7 @@ function AppContent() {
         <Route path='/register' element={<Register />} />
         <Route path='/login' element={<Login />} />
         <Route path='/contact' element={<Contact />} />
+        <Route path='/terms' element={<TermsConditions/>  } />
         <Route path='/vision' element={<Vision />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path='/courses' element={<Courses />} />
@@ -52,6 +54,7 @@ function AppContent() {
         <Route path='/course/:courseId' element={<CourseDetail />} />
         <Route path="/auth/success" element={<AuthSuccess />} />
         <Route path="/quiz" element={<Quiz />} />
+
       </Routes>
       {!isQuizRoute && <Footer />}
     </>

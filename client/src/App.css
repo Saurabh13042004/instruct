@@ -4,3 +4,89 @@ body {
 html {
 scroll-behavior: smooth;
 }
+
+    /* Parallax Section */
+    .parallax {
+      background: url('assets/img/video/term.bg.svg') no-repeat center center/cover;
+      height: 100vh;
+      position: relative;
+      color: white;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .parallax .content {
+      z-index: 2;
+      animation: fadeIn 2s ease-in-out;
+    }
+
+    .parallax:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7); /* Dark overlay */
+      z-index: 1;
+    }
+
+    /* Keyframe for fade-in effect */
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    /* Terms Container */
+    .terms-container {
+      padding: 50px;
+    }
+
+    .terms-container h2, .terms-container h3 {
+      color: #ededed; /* Highlight color */
+      margin-bottom: 20px;
+      border-left: 5px solid #b16901; /* Accent color */
+      padding-left: 15px;
+      text-transform: uppercase;
+    }
+
+    .terms-container p {
+      color: #E0E0E0; /* Primary text color */
+      margin-bottom: 20px;
+    }
+
+    a {
+      color: #c6c6c4; /* Accent color */
+      text-decoration: none;
+      transition: color 0.3s ease-in-out;
+    }
+
+    a:hover {
+      color: #b16901; /* Highlight color */
+    }
+
+    .bolder{ color:#b16901; font-weight: bold; }
+
+
+    /* Smooth Scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Media Queries for Responsiveness */
+    @media (max-width: 768px) {
+      nav {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .parallax {
+        height: 60vh;
+      }
+
+      .terms-container {
+        padding: 20px;
+      }
+    }

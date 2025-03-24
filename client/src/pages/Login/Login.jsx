@@ -79,7 +79,7 @@ function Login({ onSuccess, onRegisterClick }) {
   };
 
   return (
-    <div className="min-h-auto w-full max-w-md overflow-hidden bg-dark rounded-2xl shadow-[0_0_25px_5px_rgba(76,29,149,0.15)] relative">
+    <div className="min-h-auto w-screen max-w-md overflow-hidden bg-dark rounded-2xl shadow-[0_0_25px_5px_rgba(76,29,149,0.15)] relative">
       {/* Floating Particles */}
       <div className="absolute inset-0 overflow-hidden">
         {particles.map(particle => (

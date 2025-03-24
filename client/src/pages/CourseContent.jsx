@@ -49,7 +49,7 @@ const CourseContent = () => {
 
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-screen mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="batch-heading flex flex-col items-center mb-16 pt-32">
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
           {courseName}

@@ -11,6 +11,7 @@ import 'swiper/css/navigation';   // Navigation module
 import 'swiper/css/pagination';   // Pagination module
 import 'swiper/css/autoplay';     // Autoplay module
 import useScrollAnimation from '../hooks/useScrollAnimation';
+import { Link } from 'react-router-dom';
 
 function HomePage() {
   useScrollAnimation();
@@ -232,9 +233,9 @@ function HomePage() {
                     <div className="what-box__icon mb-30" />
                     <img src="assets/img/slider/more courses.svg" alt="" />
                     <h3>More Courses Offered by us</h3>
-                    <a href="coming soon.html" className="theme_btn border_btn">
+                    <Link to='/courses' className="theme_btn border_btn">
                       Explore Now
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -318,7 +319,7 @@ function HomePage() {
                         </li>
                       </ul>
                       <a
-                        href="about.html"
+                        href="/about"
                         className="theme_btn wow fadeInUp2 animated"
                         data-wow-delay=".3s"
                       >

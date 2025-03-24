@@ -6,6 +6,7 @@ import Modal from "react-modal";
 import * as pdfjsLib from "pdfjs-dist";
 import AudioPlayer from "react-h5-audio-player";
 import "react-h5-audio-player/lib/styles.css";
+import { Play, Pause, SkipBack, SkipForward, VolumeX, Volume1, Volume2 } from "lucide-react";
 import { Link } from "react-router-dom";
 // Set up PDF.js worker URL with dynamic version
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
@@ -14,6 +15,251 @@ const extractKeyFromUrl = (url) => {
   const parts = url.split("/");
   return parts.slice(3).join("/");
 };
+
+
+
+
+// Add this new component at the bottom of your file, before the export statement
+const EnhancedAudioPlayer = ({ audioUrl }) => {
+  // Reference to the audio element
+  const audioRef = useRef(new Audio(audioUrl));
+
+  // State variables to manage audio playback, progress, speed, and volume
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [speed, setSpeed] = useState(1);
+  const [volume, setVolume] = useState(1);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [chapterName, setChapterName] = useState("Audio Chapter");
+
+  useEffect(() => {
+    // Set the audio source when the component mounts
+    audioRef.current.src = audioUrl;
+
+    // Setup Media Session API for controlling playback from notifications
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: chapterName,
+        artist: "Instruct",
+        album: "Course Audio",
+      });
+
+      navigator.mediaSession.setActionHandler("play", () => togglePlayPause());
+      navigator.mediaSession.setActionHandler("pause", () => togglePlayPause());
+      navigator.mediaSession.setActionHandler("previoustrack", () => skipTime(-10));
+      navigator.mediaSession.setActionHandler("nexttrack", () => skipTime(10));
+    }
+
+    // Auto-play when loaded
+    audioRef.current.addEventListener('loadedmetadata', () => {
+      setDuration(audioRef.current.duration);
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch(error => {
+        console.error("Autoplay failed:", error);
+      });
+    });
+
+    // Cleanup function
+    return () => {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    };
+  }, [audioUrl]);
+
+  // Toggle between play and pause states
+  const togglePlayPause = () => {
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = isPlaying ? "paused" : "playing";
+    }
+  };
+
+  // Skip forward or backward in the audio
+  const skipTime = (time) => {
+    audioRef.current.currentTime += time;
+  };
+
+  // Change playback speed
+  const handleSpeedChange = (newSpeed) => {
+    setSpeed(newSpeed);
+    audioRef.current.playbackRate = newSpeed;
+  };
+
+  // Adjust volume level
+  const handleVolumeChange = (e) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    audioRef.current.volume = newVolume;
+  };
+
+  // Handle progress bar click to seek
+  const handleProgressClick = (e) => {
+    const progressBar = e.currentTarget;
+    const rect = progressBar.getBoundingClientRect();
+    const pos = (e.clientX - rect.left) / progressBar.offsetWidth;
+    audioRef.current.currentTime = pos * audioRef.current.duration;
+  };
+
+  useEffect(() => {
+    // Update progress bar as the audio plays
+    const audio = audioRef.current;
+
+    const updateProgress = () => {
+      setProgress((audio.currentTime / audio.duration) * 100);
+      setCurrentTime(audio.currentTime);
+    };
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setProgress(0);
+      setCurrentTime(0);
+    };
+
+    audio.addEventListener("timeupdate", updateProgress);
+    audio.addEventListener("ended", handleEnded);
+
+    return () => {
+      audio.removeEventListener("timeupdate", updateProgress);
+      audio.removeEventListener("ended", handleEnded);
+    };
+  }, []);
+
+  // Format time in MM:SS
+  const formatTime = (time) => {
+    if (isNaN(time)) return "00:00";
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  // Determine the correct volume icon based on the volume level
+  const getVolumeIcon = () => {
+    if (volume === 0) return <VolumeX size={20} className="text-gray-300" />;
+    if (volume > 0 && volume <= 0.5) return <Volume1 size={20} className="text-gray-300" />;
+    return <Volume2 size={20} className="text-gray-300" />;
+  };
+
+  return (
+    <div className="w-full flex flex-col items-center">
+      {/* Circular Visualizer */}
+      <div className="relative w-48 h-48 flex items-center justify-center mb-4">
+        <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-700 rounded-full shadow-lg flex items-center justify-center">
+          <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+            <div className="text-white text-xl font-bold">
+              {formatTime(currentTime)}
+            </div>
+          </div>
+        </div>
+        <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="45" stroke="#222" strokeWidth="3" fill="none" />
+          <circle
+            cx="50"
+            cy="50"
+            r="45"
+            stroke="#eb9f18"
+            strokeWidth="3"
+            fill="none"
+            strokeDasharray="283"
+            strokeDashoffset={`${283 - (progress / 100) * 283}`}
+            strokeLinecap="round"
+          />
+        </svg>
+      </div>
+
+      {/* Song Title and Artist */}
+      <h2 className="text-xl font-semibold mt-2 text-white">{chapterName}</h2>
+      <p className="text-gray-400 text-sm mb-4">Instruct</p>
+
+      {/* Progress Bar */}
+      <div className="w-full mb-2">
+        <div
+          className="w-full h-2 bg-gray-700 rounded-full cursor-pointer relative"
+          onClick={handleProgressClick}
+        >
+          <div
+            className="h-full bg-[#eb9f18] rounded-full absolute top-0 left-0"
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
+        <div className="flex justify-between text-xs text-gray-400 mt-1">
+          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(duration)}</span>
+        </div>
+      </div>
+
+      {/* Playback Controls */}
+      <div className="flex items-center justify-center mt-4 space-x-6">
+        <button
+          onClick={() => skipTime(-10)}
+          className="text-gray-300 hover:text-white transition-colors"
+        >
+          <SkipBack size={24} />
+        </button>
+        <button
+          onClick={togglePlayPause}
+          className="bg-[#eb9f18] p-4 rounded-full shadow-lg hover:bg-[#d99416] transition-all"
+        >
+          {isPlaying ? <Pause size={28} /> : <Play size={28} className="ml-1" />}
+        </button>
+        <button
+          onClick={() => skipTime(10)}
+          className="text-gray-300 hover:text-white transition-colors"
+        >
+          <SkipForward size={24} />
+        </button>
+      </div>
+
+      {/* Speed Control Buttons */}
+      <div className="flex items-center justify-center mt-6 space-x-3">
+        {[0.5, 0.75, 1, 1.25, 1.5, 2].map((value) => (
+          <button
+            key={value}
+            onClick={() => handleSpeedChange(value)}
+            className={`px-2 py-1 rounded-md text-sm transition-all ${speed === value
+                ? 'bg-[#eb9f18] text-white'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+          >
+            {value}x
+          </button>
+        ))}
+      </div>
+
+      {/* Volume Control */}
+      <div className="flex items-center justify-center mt-6 space-x-3 w-full max-w-xs">
+        <button
+          onClick={() => {
+            const newVolume = volume === 0 ? 1 : 0;
+            setVolume(newVolume);
+            audioRef.current.volume = newVolume;
+          }}
+          className="text-gray-300 hover:text-white"
+        >
+          {getVolumeIcon()}
+        </button>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          value={volume}
+          onChange={handleVolumeChange}
+          className="w-full h-2 bg-gray-700 rounded-full appearance-none cursor-pointer accent-[#eb9f18]"
+        />
+      </div>
+    </div>
+  );
+};
+
+
+
 
 const CourseContentDetail = () => {
   const { courseId, subjectId } = useParams();
@@ -45,10 +291,10 @@ const CourseContentDetail = () => {
       const response = await API.get(`/quiz/chapter/${chapterId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-  
+
       if (response.data.success && response.data.quizzes.length > 0) {
         navigate(`/quiz`, {
-          state: { 
+          state: {
             quiz: response.data.quizzes[0],
             courseId,
             subjectId,
@@ -63,10 +309,9 @@ const CourseContentDetail = () => {
       toast.error("Failed to load quiz");
     }
   };
-  
+
 
   // Replace the existing Chapters Grid section with this:
-
   const handleOpenProtectedResource = async (resourceUrl, type) => {
     try {
       const token = localStorage.getItem("token");
@@ -264,9 +509,9 @@ const CourseContentDetail = () => {
           filteredChapters.map((chapter, index) => (
             <div key={index} className="relative">
               <div
-                className="card bg-gradient-to-br from-gray-800 to-gray-900
+                className="bg-gradient-to-br from-gray-800 to-gray-900
                        border border-white/10 rounded-2xl overflow-visible transition-all 
-                       duration-300 hover:border-white/20 hover:translate-y-[-4px]"
+                       duration-300 hover:border-white/20 hover:translate-y-[-4px] h-[12rem] p-4"
               >
                 {/* Card Header */}
                 <div
@@ -288,11 +533,10 @@ const CourseContentDetail = () => {
               {/* Card Content - Expandable Section */}
               <div
                 className={`mt-2 transition-all duration-500 ease-in-out origin-top
-                     ${
-                       activeChapters[index]
-                         ? "opacity-100 transform scale-y-100"
-                         : "opacity-0 transform scale-y-0 h-0"
-                     }`}
+                     ${activeChapters[index]
+                    ? "opacity-100 transform scale-y-100"
+                    : "opacity-0 transform scale-y-0 h-0"
+                  }`}
               >
                 <div className="space-y-2 bg-gray-800/50 rounded-xl p-4 backdrop-blur-sm border border-white/10">
                   {/* PDF Option */}
@@ -388,12 +632,12 @@ const CourseContentDetail = () => {
           isOpen={true}
           onRequestClose={closePdfViewer}
           contentLabel="PDF Viewer"
-          className="fixed pt-250 inset-0 flex items-center justify-center p-4 z-50"
-          overlayClassName="fixed inset-0 bg-black bg-opacity-75 z-40"
+          className="fixed inset-0 flex items-center justify-center z-50 p-4 pt-28 pb-16 overflow-hidden"
+          overlayClassName="fixed inset-0 bg-black bg-opacity-90 z-40"
         >
-          <div className=" bg-dark rounded-lg w-full max-w-6xl max-h-[90vh] overflow-auto p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800">PDF Viewer</h2>
+          <div className="bg-gray-900 rounded-lg w-full max-w-6xl h-[85vh] flex flex-col p-4 shadow-2xl border border-gray-700">
+            <div className="flex justify-between items-center mb-2 pb-2 border-b border-gray-700">
+              <h2 className="text-xl font-bold text-white">PDF Viewer</h2>
               <button
                 onClick={closePdfViewer}
                 className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
@@ -402,44 +646,68 @@ const CourseContentDetail = () => {
               </button>
             </div>
 
-            {pdfError ? (
-              <div className="text-red-600 p-4 text-center">
-                <p>Error loading PDF: {pdfError.message}</p>
+            {!pdfDoc && !pdfError ? (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="inline-block w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <p className="text-gray-300">Loading PDF document...</p>
+                </div>
+              </div>
+            ) : pdfError ? (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-red-400 p-4 text-center max-w-md">
+                  <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <p className="text-lg font-semibold">Error loading PDF</p>
+                  <p className="mt-2">{pdfError.message || "Could not load the document. Please try again."}</p>
+                </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center">
-                <div
-                  className="w-full overflow-auto mb-4 relative"
-                  onContextMenu={(e) => e.preventDefault()}
-                >
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 overflow-auto relative bg-gray-800 rounded-lg">
                   {isRendering && (
-                    <div className="absolute inset-0 bg-gray-100 bg-opacity-50 flex items-center justify-center">
-                      <p className="text-gray-600">Loading page...</p>
+                    <div className="absolute inset-0 bg-gray-800 bg-opacity-80 flex items-center justify-center z-10">
+                      <div className="flex flex-col items-center">
+                        <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        <p className="mt-2 text-gray-300">Rendering page {pageNumber}...</p>
+                      </div>
                     </div>
                   )}
-                  <canvas
-                    ref={canvasRef}
-                    className="mx-auto border border-gray-300 shadow-lg"
-                  />
+                  <div className="flex justify-center min-h-full p-4">
+                    <canvas
+                      ref={canvasRef}
+                      className="border border-gray-700 shadow-lg"
+                      style={{ maxHeight: "100%" }}
+                    />
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-center gap-4 p-2 bg-gray-100 rounded-lg w-full">
+                <div className="mt-4 flex items-center justify-center gap-4 p-3 bg-gray-800 rounded-lg">
                   <button
-                    disabled={pageNumber <= 1}
+                    disabled={pageNumber <= 1 || isRendering}
                     onClick={() => setPageNumber((prev) => prev - 1)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors flex items-center"
                   >
+                    <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
                     Previous
                   </button>
-                  <span className="text-gray-700 font-medium">
-                    Page {pageNumber} of {numPages}
-                  </span>
+                  <div className="px-4 py-2 bg-gray-700 rounded-md shadow-sm">
+                    <span className="text-gray-200 font-medium">
+                      Page {pageNumber} of {numPages || '?'}
+                    </span>
+                  </div>
                   <button
-                    disabled={pageNumber >= numPages}
+                    disabled={!numPages || pageNumber >= numPages || isRendering}
                     onClick={() => setPageNumber((prev) => prev + 1)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors flex items-center"
                   >
                     Next
+                    <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </button>
                 </div>
               </div>
@@ -448,35 +716,31 @@ const CourseContentDetail = () => {
         </Modal>
       )}
 
+
+
       {showAudioPlayer && audioUrl && (
         <Modal
           isOpen={true}
           onRequestClose={closeAudioPlayer}
           contentLabel="Audio Player"
-          className="fixed pt-250 inset-0 flex items-center justify-center p-4 z-50"
-          overlayClassName="fixed inset-0 bg-black bg-opacity-75 z-40"
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          overlayClassName="fixed inset-0 bg-black bg-opacity-90 z-40"
         >
-          <div className="bg-dark rounded-lg w-full max-w-2xl p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Audio Player</h2>
-              <button
-                onClick={closeAudioPlayer}
-                className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
-              >
-                Close
-              </button>
-            </div>
-            <AudioPlayer
-              autoPlay
-              src={audioUrl}
-              onPlay={(e) => console.log("onPlay")}
-              showJumpControls={true}
-              customProgressBarSection={["PROGRESS_BAR"]}
-              customControlsSection={["MAIN_CONTROLS", "VOLUME_CONTROLS"]}
-            />
+          <div className="relative bg-gray-900 p-8 rounded-3xl shadow-2xl max-w-md w-full text-center border border-gray-700 flex flex-col items-center">
+            <button
+              onClick={closeAudioPlayer}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <EnhancedAudioPlayer audioUrl={audioUrl} />
           </div>
         </Modal>
       )}
+
     </div>
   );
 };

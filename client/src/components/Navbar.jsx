@@ -168,14 +168,14 @@ function Navbar() {
                     <ul className="d-flex align-items-center">
                       <li>
                         {isLoggedIn ? (
-                          <Link to="/courses" className="theme_btn free_btn">
+                          <Link to="/courses" className="theme_btn wow  ">
                             My Courses
                           </Link>
                         ) : (
                           <button
                             onClick={() => setShowLoginModal(true)}
-                            className="theme_btn free_btn"
-                          >
+                            className="theme_btn wow  "> 
+                          
                             Login
                           </button>
                         )}

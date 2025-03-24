@@ -1,6 +1,7 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faYoutube, faTelegram, faWhatsapp, faLinkedinIn } from '@fortawesome/free-brands-svg-icons';
+import { Link } from 'react-router-dom';
 
 function Footer() {
   return (
@@ -10,9 +11,9 @@ function Footer() {
           <div className="col-xl-3 col-lg-4 col-md-6 wow fadeInUp2 animated" data-wow-delay='.1s'>
             <div className="footer__widget mb-30">
               <div className="footer-log mb-20">
-                <a href="index.html" className="logo">
-                  <img src="assets/img/logo/main logoo.svg" alt="Instruct Logo" />
-                </a>
+                  <Link to="/">
+                    <img src="https://instructedu.s3.eu-north-1.amazonaws.com/main+logoo.svg" alt="Logo" />
+                  </Link>
               </div>
               <p>"The goal of education is not to teach the facts, but to teach how to think critically and observe the world."- Founder</p>
               <div className="social-media footer__social mt-30">
@@ -36,9 +37,9 @@ function Footer() {
               <h6 className="widget-title mb-35">Contact us</h6>
               <ul className="fot-list">
                 <li><a href="mailto:contact@instructedu.in">contact@instructedu.in</a></li>
-                <li><a href="terms.html">Terms & Conditions</a></li>
+                <li><Link to="/terms">Terms & Conditions</Link></li>
                 <li><a href="privacy.policy.html">Privacy Policy</a></li>
-                <li><a href="contact.html">Contacts</a></li>
+                <li><Link to='/contact'>Contacts</Link></li>
               </ul>
             </div>
           </div>
