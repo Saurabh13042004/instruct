@@ -16,8 +16,11 @@ const sendOTP = async (phoneNumber, otp) => {
         'Content-Type': 'application/json'
       },
       data: {
-        route: "otp",
-        variables_values: otp,
+        route: "dlt",
+        sender_id: process.env.FAST2SMS_SENDER_ID,
+        message:process.env.FAST2SMS_MESSAGE_ID,
+        variables_values: '|',
+        flash: 0,
         numbers: phoneNumber
       }
     });

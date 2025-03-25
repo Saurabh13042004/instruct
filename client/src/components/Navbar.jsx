@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { X } from "lucide-react";
+import { X, User, LogOut } from "lucide-react";
 import ProfileSystem from "./ProfileSystem";
 import Modal from "react-modal";
 import Login from "../pages/Login/Login";
@@ -8,8 +8,6 @@ import Register from "../pages/Register";
 
 // Set the app element for accessibility
 Modal.setAppElement("#root");
-
-
 
 const navItemStyles = {
   link: {
@@ -20,7 +18,6 @@ const navItemStyles = {
     color: "#EB9F18",
   }
 };
-
 
 const customModalStyles = {
   overlay: {
@@ -52,7 +49,6 @@ const customModalStyles = {
   },
 };
 
-
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -60,12 +56,24 @@ function Navbar() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const dropdownRef = useRef(null);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleLogout = () => {
@@ -182,67 +190,82 @@ function Navbar() {
                       </li>
                     </ul>
                   </div>
+                  
                   {/* User Icon - toggles user menu */}
-                  <div className="user-icon mr-15">
-                    <div onClick={toggleUserMenu} style={{ cursor: "pointer" }}>
-                      <lord-icon
-                        src="https://cdn.lordicon.com/fmasbomy.json"
-                        trigger="click"
-                        state="hover-looking-around"
-                        colors="primary:#121331,secondary:#c6c6c4,tertiary:#b16901"
-                        style={{ width: "45px", height: "45px" }}
-                      />
-                    </div>
-                    {isLoggedIn && showUserMenu && (
-                      <div
-                        className="user-dropdown-menu"
-                        style={{
-                          position: "absolute",
-                          top: "50px",
-                          right: 0,
-                          background: "#fff",
-                          color: "#000",
-                          border: "1px solid #ccc",
-                          borderRadius: "5px",
-                          padding: "0.5rem 1rem",
-                          zIndex: 9999,
-                        }}
-                      >
-                        <button
-                          onClick={() => {
-                            setShowProfileModal(true);
-                            setShowUserMenu(false);
-                          }}
-                          style={{
-                            border: "none",
-                            background: "none",
-                            padding: "0",
-                            margin: "0",
-                            fontSize: "1rem",
-                            cursor: "pointer",
-                            display: "block",
-                            marginBottom: "0.5rem",
-                          }}
-                        >
-                          Profile
-                        </button>
-                        <button
-                          onClick={handleLogout}
-                          style={{
-                            border: "none",
-                            background: "none",
-                            padding: "0",
-                            margin: "0",
-                            fontSize: "1rem",
-                            cursor: "pointer",
-                            display: "block",
-                          }}
-                        >
-                          Logout
-                        </button>
+                  <div className="user-icon mr-15 relative" ref={dropdownRef}>
+                    <button
+                      onClick={toggleUserMenu}
+                      className={`
+                        w-10 h-10 rounded-full
+                        bg-white/10
+                        flex items-center justify-center
+                        transition-transform duration-300
+                        ${showUserMenu ? 'scale-95' : 'scale-100'}
+                      `}
+                    >
+                      <span className="text-xl">👤</span>
+                    </button>
+                    
+                    {isLoggedIn && (
+                      <div className={`
+                        absolute right-0 mt-3
+                        transition-all duration-300
+                        origin-top-right
+                        ${showUserMenu
+                          ? 'scale-100 opacity-100 translate-y-0'
+                          : 'scale-95 opacity-0 -translate-y-2 pointer-events-none'
+                        }
+                      `}>
+                        {/* Card Container */}
+                        <div className="
+                          relative w-44 rounded-2xl
+                          before:absolute before:inset-0
+                          before:rounded-2xl before:bg-gray-900/40
+                          before:backdrop-blur-sm
+                          before:shadow-[0_8px_16px_rgb(0_0_0/0.4)]
+                          after:absolute after:inset-0
+                          after:rounded-2xl after:-z-10
+                          after:shadow-[0_0_0_1px_rgba(255,255,255,0.1)]
+                          after:bg-gradient-to-b after:from-white/10 after:to-transparent
+                        ">
+                          {/* Menu Items */}
+                          <div className="relative py-1">
+                            <button
+                              className={`
+                                w-full flex items-center gap-3 px-4 py-3
+                                text-white text-sm font-medium
+                                transition-all duration-300
+                                ${showUserMenu ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'}
+                              `}
+                              style={{ transitionDelay: '200ms' }}
+                              onClick={() => {
+                                setShowProfileModal(true);
+                                setShowUserMenu(false);
+                              }}
+                            >
+                              <User size={16} />
+                              <span>Profile</span>
+                            </button>
+                            
+                            <button
+                              className={`
+                                w-full flex items-center gap-3 px-4 py-3
+                                text-red-400 text-sm font-medium
+                                transition-all duration-300
+                                ${showUserMenu ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'}
+                              `}
+                              style={{ transitionDelay: '300ms' }}
+                              onClick={handleLogout}
+                            >
+                              <LogOut size={16} />
+                              <span>Log out</span>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
+                  
                   {/* Hamburger Menu */}
                   <div className="hamburger-menu d-lg-none">
                     <button
@@ -262,7 +285,6 @@ function Navbar() {
             </div>
           </div>
         </div>
-
 
         {/* Mobile Menu Overlay */}
         {menuOpen && (
@@ -293,8 +315,6 @@ function Navbar() {
           </div>
         )}
       </header>
-
-
 
       {/* Login Modal */}
       <Modal
@@ -339,7 +359,6 @@ function Navbar() {
           <Register />
         </div>
       </Modal>
-
 
       {/* Profile Modal */}
       <Modal

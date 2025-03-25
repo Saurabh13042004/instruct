@@ -13,6 +13,7 @@ const userRoutes = require("./routes/user");
 const transactionRoutes = require("./routes/transaction");
 const uploadRoutes = require("./routes/upload");
 const presignedUrlRoute = require("./routes/presignedUrl");
+const profileRoutes = require("./routes/profile");
 
 const quizRoutes = require("./routes/quiz");
 const app = express();
@@ -33,6 +34,8 @@ app.use("/api/transactions", transactionRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/presigned-url", presignedUrlRoute);
 app.use("/api/quiz", quizRoutes);
+app.use("/api/profile", profileRoutes);
+
 
 
 

@@ -4,6 +4,7 @@ import API from "../../api";
 import axios from "axios";
 import { Lock } from "lucide-react";
 import { Star, StarHalf } from 'lucide-react';
+import ReactPlayer from 'react-player/youtube'; // Import the YouTube player
 
 
 // Helper to get Razorpay key from environment variables (for Vite/CRA)
@@ -16,9 +17,12 @@ const getRazorpayKey = () => {
 
 function CourseDetail() {
   const { courseId } = useParams();
+  
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [videoPlaying, setVideoPlaying] = useState(false);
+
   const [purchased, setPurchased] = useState(false);
   const [rating, setRating] = useState(0);
 const [feedback, setFeedback] = useState('');
@@ -303,22 +307,22 @@ const reviewSection = `
                 <div className="courses-details-wrapper mb-60">
                   <div
                     className="course-details-img mb-30"
-                    style={{
-                      backgroundImage: `url(${course.introVideo})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                    }}
                   >
-                    <div className="video-wrapper">
-                      <a
-                        href={course.introVideo}
-                        className="popup-video"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <i className="fas fa-play"></i>
-                      </a>
-                    </div>
+                    <ReactPlayer
+                      url={course.introVideo}
+                      width="100%"
+                      height="400px"
+                      controls={true}
+                      light={true} // This shows a thumbnail before playing
+                      playing={videoPlaying}
+                      onPlay={() => setVideoPlaying(true)}
+                      onPause={() => setVideoPlaying(false)}
+                      config={{
+                        youtube: {
+                          playerVars: { showinfo: 1 }
+                        }
+                      }}
+                    />
                   </div>
                 </div>
               </div>
