@@ -13,23 +13,48 @@ import {
   Settings,
   Bell,
   Brain,
+  Search,
+  Filter,
+  Shield,
+  UserX,
+  Clock,
+  Activity,
+  Calendar,
+  ChevronDown,
+  Book,
+  FileText,
+  ArrowLeft,
+  List,
 } from "lucide-react";
-import { ChevronDown, Book, FileText, ArrowLeft, List } from "lucide-react";
 
 import QuizForm from "../components/QuizForm";
+
 function AdminPage() {
   const [userCount, setUserCount] = useState(0);
   const [courseCount, setCourseCount] = useState(0);
   const [transactionCount, setTransactionCount] = useState(0);
+  const [activeUsers, setActiveUsers] = useState({ daily: 0, weekly: 0, monthly: 0 });
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [selectedChapter, setSelectedChapter] = useState(null);
   const [quizViewMode, setQuizViewMode] = useState("list"); // 'list' or 'create'
   const [quizzes, setQuizzes] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [activeTab, setActiveTab] = useState("course"); // "course" or "admin"
+  const [activeTab, setActiveTab] = useState("course"); // "course", "admin", "quiz", "users"
   const [courseViewMode, setCourseViewMode] = useState("add"); // "add", "list", "edit", or "transactions"
   const [courses, setCourses] = useState([]);
+  const [usersList, setUsersList] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [userSearchQuery, setUserSearchQuery] = useState("");
+  const [userSortBy, setUserSortBy] = useState("createdAt");
+  const [userSortOrder, setUserSortOrder] = useState("desc");
+  const [userActivityData, setUserActivityData] = useState(null);
+  const [adminRole, setAdminRole] = useState("");
+  const [blockForm, setBlockForm] = useState({
+    blockType: "temporary",
+    blockDuration: 7,
+  });
+
   const [courseForm, setCourseForm] = useState({
     courseName: "",
     description: "",
@@ -40,6 +65,7 @@ function AdminPage() {
     discountPrice: "",
     promocode: "",
   });
+
   const [quizForm, setQuizForm] = useState({
     title: "",
     questions: [
@@ -52,14 +78,18 @@ function AdminPage() {
       },
     ],
   });
+
   const [subjects, setSubjects] = useState([]);
   const [quizCreationStep, setQuizCreationStep] = useState("select-course");
 
   const [editingCourseId, setEditingCourseId] = useState(null);
   const [adminForm, setAdminForm] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
+    phoneNumber: "",
+    adminRole: "Content Admin",
   });
 
   const navigate = useNavigate();
@@ -75,12 +105,37 @@ function AdminPage() {
     const userType = localStorage.getItem("userType");
     if (!token || userType !== "admin") {
       navigate("/");
+    } else {
+      // Get admin role
+      fetchAdminRole();
     }
   }, [navigate]);
 
   useEffect(() => {
     fetchStats();
   }, []);
+
+  const fetchAdminRole = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await API.get('/user/profile', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+
+      // const response = await API.get("/profile", {
+      //   headers: { Authorization: `Bearer ${token}` },
+      // });
+      if (response.data.success) {
+        setAdminRole(response.data.user.adminRole || "");
+      }
+    } catch (error) {
+      console.error("Error fetching admin role:", error);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -93,9 +148,81 @@ function AdminPage() {
       if (response.data.transactionCount !== undefined) {
         setTransactionCount(response.data.transactionCount);
       }
+      if (response.data.activeUsers) {
+        setActiveUsers(response.data.activeUsers);
+      }
     } catch (error) {
       console.error("Error fetching stats:", error);
       toast.error("Failed to fetch admin stats!");
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await API.get(`/admin/users?search=${userSearchQuery}&sortBy=${userSortBy}&sortOrder=${userSortOrder}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success) {
+        setUsersList(response.data.users);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast.error("Failed to fetch users");
+    }
+  };
+
+  const fetchUserDetails = async (userId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await API.get(`/admin/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success) {
+        setSelectedUser(response.data.user);
+        setUserActivityData(response.data.activityMetrics);
+        setBlockForm({
+          blockType: response.data.user.blockType || "temporary",
+          blockDuration: 7,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      toast.error("Failed to fetch user details");
+    }
+  };
+
+  const handleBlockUser = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await API.put(`/admin/users/${selectedUser._id}/block`, blockForm, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success) {
+        toast.success(response.data.message);
+        fetchUserDetails(selectedUser._id);
+        fetchUsers();
+      }
+    } catch (error) {
+      console.error("Error blocking user:", error);
+      toast.error("Failed to update user block status");
+    }
+  };
+
+  const handleUnblockUser = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await API.put(`/admin/users/${selectedUser._id}/block`, { blockType: "none" }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success) {
+        toast.success(response.data.message);
+        fetchUserDetails(selectedUser._id);
+        fetchUsers();
+      }
+    } catch (error) {
+      console.error("Error unblocking user:", error);
+      toast.error("Failed to update user block status");
     }
   };
 
@@ -152,7 +279,7 @@ function AdminPage() {
       toast.error("Failed to load quiz for editing");
     }
   };
-  
+
   const handleUpdateQuiz = async (quizId, formData) => {
     try {
       const token = localStorage.getItem("token");
@@ -228,12 +355,12 @@ function AdminPage() {
   const fetchTransactions = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await API.get("/transactions", {
+      const res = await API.get("/admin/transactions", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.data.success) {
         setTransactions(res.data.transactions);
-        setTransactionCount(res.data.count);
+        setTransactionCount(res.data.transactions.length);
       }
     } catch (error) {
       console.error("Error fetching transactions:", error);
@@ -369,7 +496,15 @@ function AdminPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.success) {
-        setAdminForm({ name: "", email: "", password: "" });
+        toast.success("Admin created successfully!");
+        setAdminForm({
+          firstName: "",
+          lastName: "",
+          email: "",
+          password: "",
+          phoneNumber: "",
+          adminRole: "Content Admin",
+        });
         fetchStats();
       } else {
         toast.error(response.data.message || "Failed to create admin.");
@@ -448,13 +583,30 @@ function AdminPage() {
     setCourseViewMode("list");
   };
 
+  // Check if current admin has permission for specific actions
+  const hasPermission = (requiredRoles) => {
+    if (adminRole === "Super Admin") return true;
+    return requiredRoles.includes(adminRole);
+  };
+
+  useEffect(() => {
+    if (activeTab === "users") {
+      fetchUsers();
+    }
+  }, [activeTab, userSearchQuery, userSortBy, userSortOrder]);
+
   return (
-    <div className="min-h-screen w-screen  pt-10 p-8 text-white">
+    <div className="min-h-screen w-screen pt-10 p-8 text-white">
       {/* Navbar */}
       <nav className="shadow-md px-6 py-4 flex justify-between items-center bg-gray-800 mb-8">
         <div className="flex items-center gap-2">
           <Home size={24} className="text-white" />
           <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          {adminRole && (
+            <span className="ml-2 px-2 py-1 bg-blue-600 text-xs rounded-full">
+              {adminRole}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-4">
           <Bell size={20} className="text-white" />
@@ -477,6 +629,20 @@ function AdminPage() {
               <div>
                 <p className="text-sm text-gray-300">Total Users</p>
                 <h3 className="text-2xl font-bold">{userCount}</h3>
+              </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-gray-700">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">DAU:</span>
+                <span>{activeUsers.daily}</span>
+              </div>
+              <div className="flex justify-between text-sm mt-1">
+                <span className="text-gray-400">WAU:</span>
+                <span>{activeUsers.weekly}</span>
+              </div>
+              <div className="flex justify-between text-sm mt-1">
+                <span className="text-gray-400">MAU:</span>
+                <span>{activeUsers.monthly}</span>
               </div>
             </div>
           </div>
@@ -506,58 +672,99 @@ function AdminPage() {
           </div>
         </div>
         {/* Tabs */}
-        <div className="flex gap-4 mb-6">
-          <button
-            onClick={() => {
-              setActiveTab("course");
-              setCourseViewMode("add");
-            }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              activeTab === "course" && courseViewMode === "add"
+        <div className="flex flex-wrap gap-4 mb-6">
+          {hasPermission(["Content Admin", "Super Admin"]) && (
+            <button
+              onClick={() => {
+                setActiveTab("course");
+                setCourseViewMode("add");
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${activeTab === "course" && courseViewMode === "add"
                 ? "bg-blue-500 text-black"
                 : "bg-gray-700 text-white hover:bg-gray-600"
-            }`}
-          >
-            <Plus size={20} />
-            Add Course
-          </button>
-          <button
-            onClick={() => setActiveTab("admin")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              activeTab === "admin"
+                }`}
+            >
+              <Plus size={20} />
+              Add Course
+            </button>
+          )}
+
+          {hasPermission(["Super Admin"]) && (
+            <button
+              onClick={() => setActiveTab("admin")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${activeTab === "admin"
                 ? "bg-blue-500 text-black"
                 : "bg-gray-700 text-white hover:bg-gray-600"
-            }`}
-          >
-            <User size={20} />
-            Create Admin
-          </button>
-          <button
-            onClick={() => setActiveTab("quiz")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              activeTab === "quiz"
+                }`}
+            >
+              <Shield size={20} />
+              Create Admin
+            </button>
+          )}
+
+          {hasPermission(["Content Admin", "Super Admin"]) && (
+            <button
+              onClick={() => setActiveTab("quiz")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${activeTab === "quiz"
                 ? "bg-blue-500 text-black"
                 : "bg-gray-700 text-white hover:bg-gray-600"
-            }`}
-          >
-            <Brain size={20} />
-            Create Quiz
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("course");
-              setCourseViewMode("list");
-            }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              courseViewMode === "list"
+                }`}
+            >
+              <Brain size={20} />
+              Create Quiz
+            </button>
+          )}
+
+          {hasPermission(["Content Admin", "Super Admin"]) && (
+            <button
+              onClick={() => {
+                setActiveTab("course");
+                setCourseViewMode("list");
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${courseViewMode === "list"
                 ? "bg-blue-500 text-black"
                 : "bg-gray-700 text-white hover:bg-gray-600"
-            }`}
-          >
-            <Settings size={20} />
-            Courses List
-          </button>
+                }`}
+            >
+              <Settings size={20} />
+              Courses List
+            </button>
+          )}
+
+          {hasPermission(["UMAA Admin", "Super Admin"]) && (
+            <button
+              onClick={() => {
+                setActiveTab("users");
+                setSelectedUser(null);
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${activeTab === "users"
+                ? "bg-blue-500 text-black"
+                : "bg-gray-700 text-white hover:bg-gray-600"
+                }`}
+            >
+              <Users size={20} />
+              Manage Users
+            </button>
+          )}
+
+          {hasPermission(["Financial Admin", "Super Admin"]) && (
+            <button
+              onClick={() => {
+                setActiveTab("course");
+                setCourseViewMode("transactions");
+                fetchTransactions();
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${activeTab === "course" && courseViewMode === "transactions"
+                ? "bg-blue-500 text-black"
+                : "bg-gray-700 text-white hover:bg-gray-600"
+                }`}
+            >
+              <CreditCard size={20} />
+              Transactions
+            </button>
+          )}
         </div>
+
         {/* Main Content: Course Form / List / Edit / Transactions */}
         {activeTab === "course" && (
           <>
@@ -941,6 +1148,9 @@ function AdminPage() {
                           Transaction ID
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                          User
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                           Course
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
@@ -958,7 +1168,10 @@ function AdminPage() {
                             {txn.razorpay_order_id}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            {txn.course}
+                            {txn.user ? `${txn.user.firstName} ${txn.user.lastName}` : 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {txn.course ? txn.course.courseName : 'N/A'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             ₹{txn.amount / 100}
@@ -985,21 +1198,36 @@ function AdminPage() {
             )}
           </>
         )}
+
         {activeTab === "admin" && (
           <div className="bg-gray-800 rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold mb-6">Create New Admin</h2>
             <form onSubmit={handleAdminSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Name</label>
-                <input
-                  type="text"
-                  value={adminForm.name}
-                  onChange={(e) =>
-                    setAdminForm({ ...adminForm, name: e.target.value })
-                  }
-                  required
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">First Name</label>
+                  <input
+                    type="text"
+                    value={adminForm.firstName}
+                    onChange={(e) =>
+                      setAdminForm({ ...adminForm, firstName: e.target.value })
+                    }
+                    required
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Last Name</label>
+                  <input
+                    type="text"
+                    value={adminForm.lastName}
+                    onChange={(e) =>
+                      setAdminForm({ ...adminForm, lastName: e.target.value })
+                    }
+                    required
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Email</label>
@@ -1027,11 +1255,39 @@ function AdminPage() {
                   className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Phone Number</label>
+                <input
+                  type="text"
+                  value={adminForm.phoneNumber}
+                  onChange={(e) =>
+                    setAdminForm({ ...adminForm, phoneNumber: e.target.value })
+                  }
+                  required
+                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Admin Role</label>
+                <select
+                  value={adminForm.adminRole}
+                  onChange={(e) =>
+                    setAdminForm({ ...adminForm, adminRole: e.target.value })
+                  }
+                  required
+                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="Super Admin">Super Admin</option>
+                  <option value="Content Admin">Content Admin</option>
+                  <option value="UMAA Admin">UMAA Admin</option>
+                  <option value="Financial Admin">Financial Admin</option>
+                </select>
+              </div>
               <button
                 type="submit"
                 className="w-full px-4 py-2 bg-blue-500 text-black rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
               >
-                <User size={20} />
+                <Shield size={20} />
                 Create Admin
               </button>
             </form>
@@ -1141,7 +1397,6 @@ function AdminPage() {
                       setSelectedChapter(chapter);
                       setQuizCreationStep("create-quiz");
                       fetchChapterQuizzes(chapter._id);
-                      // fetchChapterQuizzes(chapter._id);
                     }}
                   >
                     <div className="flex items-center gap-3">
@@ -1193,49 +1448,325 @@ function AdminPage() {
 
                 {quizViewMode === "list" ? (
                   <div className="space-y-4">
-                    {quizzes.map((quiz) => (
-                      <div
-                        key={quiz._id}
-                        className="border border-gray-700 rounded-lg p-4"
-                      >
-                        <div className="flex justify-between items-center">
-                          <h4 className="font-medium">{quiz.title}</h4>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleEditQuiz(quiz)}
-                              className="text-blue-400 hover:text-blue-500"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteQuiz(quiz._id)}
-                              className="text-red-400 hover:text-red-500"
-                            >
-                              Delete
-                            </button>
+                    {quizzes.length > 0 ? (
+                      quizzes.map((quiz) => (
+                        <div
+                          key={quiz._id}
+                          className="border border-gray-700 rounded-lg p-4"
+                        >
+                          <div className="flex justify-between items-center">
+                            <h4 className="font-medium">{quiz.title}</h4>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleEditQuiz(quiz)}
+                                className="text-blue-400 hover:text-blue-500"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteQuiz(quiz._id)}
+                                className="text-red-400 hover:text-red-500"
+                              >
+                                Delete
+                              </button>
+                            </div>
                           </div>
+                          <p className="text-sm text-gray-400">
+                            Duration: {quiz.duration / 60} minutes
+                          </p>
+                          <p className="text-sm text-gray-400">
+                            Questions: {quiz.questions.length}
+                          </p>
                         </div>
-                        <p className="text-sm text-gray-400">
-                          Duration: {quiz.duration} minutes
-                        </p>
-                        <p className="text-sm text-gray-400">
-                          Questions: {quiz.questions.length}
-                        </p>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <p className="text-gray-400">No quizzes found for this chapter.</p>
+                    )}
                   </div>
                 ) : (
-              <QuizForm
-                courseId={selectedCourse._id}
-                subjectId={selectedSubject._id}
-                chapterId={selectedChapter._id}
-                initialData={quizViewMode === "edit" ? quizForm : null}
-                onSuccess={() => {
-                  setQuizViewMode("list");
-                  fetchChapterQuizzes(selectedChapter._id);
-                }}
-              />
+                  <QuizForm
+                    courseId={selectedCourse._id}
+                    subjectId={selectedSubject._id}
+                    chapterId={selectedChapter._id}
+                    initialData={quizViewMode === "edit" ? quizForm : null}
+                    onSuccess={() => {
+                      setQuizViewMode("list");
+                      fetchChapterQuizzes(selectedChapter._id);
+                    }}
+                  />
                 )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* User Management Section */}
+        {activeTab === "users" && (
+          <div className="bg-gray-800 rounded-lg shadow-md p-6">
+            {!selectedUser ? (
+              <>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-semibold">User Management</h2>
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Search users..."
+                        value={userSearchQuery}
+                        onChange={(e) => setUserSearchQuery(e.target.value)}
+                        className="pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 w-64"
+                      />
+                      <Search className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
+                    </div>
+                    <div className="relative">
+                      <select
+                        value={userSortBy}
+                        onChange={(e) => setUserSortBy(e.target.value)}
+                        className="pl-4 pr-10 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 appearance-none"
+                      >
+                        <option value="firstName">Name</option>
+                        <option value="email">Email</option>
+                        <option value="phoneNumber">Phone</option>
+                        <option value="dateOfBirth">Date of Birth</option>
+                        <option value="createdAt">Sign-up Date</option>
+                      </select>
+                      <ChevronDown className="absolute right-3 top-2.5 text-gray-400 w-4 h-4" />
+                    </div>
+                    <button
+                      onClick={() => setUserSortOrder(userSortOrder === "asc" ? "desc" : "asc")}
+                      className="p-2 bg-gray-700 border border-gray-600 rounded-lg hover:bg-gray-600"
+                    >
+                      {userSortOrder === "asc" ? "↑" : "↓"}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-700">
+                    <thead className="bg-gray-800">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                          Name
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                          Email
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                          Phone
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                          DOB
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                          Sign-up Date
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-gray-900 divide-y divide-gray-700">
+                      {usersList.map((user) => (
+                        <tr key={user._id}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {user.firstName} {user.lastName}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {user.email}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {user.phoneNumber}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {new Date(user.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {user.isBlocked ? (
+                              <span className="px-2 py-1 bg-red-900 text-red-200 rounded-full text-xs">
+                                {user.blockType === "permanent" ? "Permanently Blocked" : "Temporarily Blocked"}
+                              </span>
+                            ) : (
+                              <span className="px-2 py-1 bg-green-900 text-green-200 rounded-full text-xs">
+                                Active
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <button
+                              onClick={() => fetchUserDetails(user._id)}
+                              className="text-blue-400 hover:text-blue-500"
+                            >
+                              View Details
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            ) : (
+              <div>
+                <div className="flex items-center gap-2 mb-6">
+                  <button
+                    onClick={() => setSelectedUser(null)}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <ArrowLeft size={20} />
+                  </button>
+                  <h2 className="text-xl font-semibold">User Details</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div className="bg-gray-900 p-6 rounded-lg">
+                    <h3 className="text-lg font-medium mb-4">Basic Information</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-sm text-gray-400">Full Name</p>
+                        <p>{selectedUser.firstName} {selectedUser.lastName}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-400">Email</p>
+                        <p>{selectedUser.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-400">Phone Number</p>
+                        <p>{selectedUser.phoneNumber}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-400">Date of Birth</p>
+                        <p>{selectedUser.dateOfBirth ? new Date(selectedUser.dateOfBirth).toLocaleDateString() : 'Not provided'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-400">Account Type</p>
+                        <p className="capitalize">{selectedUser.type}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-400">Account Created</p>
+                        <p>{new Date(selectedUser.createdAt).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-900 p-6 rounded-lg">
+                    <h3 className="text-lg font-medium mb-4">Account Status</h3>
+
+                    {selectedUser.isBlocked ? (
+                      <div className="mb-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <UserX size={20} className="text-red-500" />
+                          <p className="text-red-400">
+                            {selectedUser.blockType === "permanent"
+                              ? "This account is permanently blocked"
+                              : "This account is temporarily blocked"}
+                          </p>
+                        </div>
+                        {selectedUser.blockType === "temporary" && selectedUser.blockExpiry && (
+                          <p className="text-sm text-gray-400">
+                            Block expires on: {new Date(selectedUser.blockExpiry).toLocaleString()}
+                          </p>
+                        )}
+                        <button
+                          onClick={handleUnblockUser}
+                          className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          Unblock User
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium mb-1">Block Type</label>
+                          <select
+                            value={blockForm.blockType}
+                            onChange={(e) => setBlockForm({ ...blockForm, blockType: e.target.value })}
+                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="temporary">Temporary Block</option>
+                            <option value="permanent">Permanent Block</option>
+                          </select>
+                        </div>
+
+                        {blockForm.blockType === "temporary" && (
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium mb-1">Block Duration (days)</label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={blockForm.blockDuration}
+                              onChange={(e) => setBlockForm({ ...blockForm, blockDuration: e.target.value })}
+                              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        )}
+
+                        <button
+                          onClick={handleBlockUser}
+                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        >
+                          Block User
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-gray-900 p-6 rounded-lg">
+                    <h3 className="text-lg font-medium mb-4">Purchased Courses</h3>
+                    {selectedUser.purchasedCourses && selectedUser.purchasedCourses.length > 0 ? (
+                      <ul className="space-y-2">
+                        {selectedUser.purchasedCourses.map((course) => (
+                          <li key={course._id} className="p-3 bg-gray-800 rounded-lg">
+                            <p className="font-medium">{course.courseName}</p>
+                            <p className="text-sm text-gray-400">
+                              Purchased: {new Date(course.purchasedAt).toLocaleDateString()}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-gray-400">No courses purchased yet.</p>
+                    )}
+                  </div>
+
+                  <div className="bg-gray-900 p-6 rounded-lg">
+                    <h3 className="text-lg font-medium mb-4">Activity Metrics</h3>
+                    {userActivityData ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <Clock size={20} className="text-blue-400" />
+                          <div>
+                            <p className="text-sm text-gray-400">Last Login</p>
+                            <p>{userActivityData.lastLogin ? new Date(userActivityData.lastLogin).toLocaleString() : 'Never'}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Activity size={20} className="text-green-400" />
+                          <div>
+                            <p className="text-sm text-gray-400">Total Logins</p>
+                            <p>{userActivityData.totalLogins || 0}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Calendar size={20} className="text-yellow-400" />
+                          <div>
+                            <p className="text-sm text-gray-400">Active Days (Last 30 Days)</p>
+                            <p>{userActivityData.activeDaysLastMonth || 0}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-400">No activity data available.</p>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -1246,3 +1777,7 @@ function AdminPage() {
 }
 
 export default AdminPage;
+
+
+
+

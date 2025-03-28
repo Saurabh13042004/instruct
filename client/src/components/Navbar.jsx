@@ -77,7 +77,7 @@ function Navbar() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    localStorage.clear();
     setIsLoggedIn(false);
     setShowUserMenu(false);
     navigate("/");
@@ -182,31 +182,31 @@ function Navbar() {
                         ) : (
                           <button
                             onClick={() => setShowLoginModal(true)}
-                            className="theme_btn wow  "> 
-                          
+                            className="theme_btn wow  ">
+
                             Login
                           </button>
                         )}
                       </li>
                     </ul>
                   </div>
-                  
+
                   {/* User Icon - toggles user menu */}
-                  <div className="user-icon mr-15 relative" ref={dropdownRef}>
-                    <button
-                      onClick={toggleUserMenu}
-                      className={`
+                  {isLoggedIn && (
+                    <div className="user-icon mr-15 relative" ref={dropdownRef}>
+                      <button
+                        onClick={toggleUserMenu}
+                        className={`
                         w-10 h-10 rounded-full
                         bg-white/10
                         flex items-center justify-center
                         transition-transform duration-300
                         ${showUserMenu ? 'scale-95' : 'scale-100'}
                       `}
-                    >
-                      <span className="text-xl">👤</span>
-                    </button>
-                    
-                    {isLoggedIn && (
+                      >
+                        <span className="text-xl">👤</span>
+                      </button>
+
                       <div className={`
                         absolute right-0 mt-3
                         transition-all duration-300
@@ -246,7 +246,7 @@ function Navbar() {
                               <User size={16} />
                               <span>Profile</span>
                             </button>
-                            
+
                             <button
                               className={`
                                 w-full flex items-center gap-3 px-4 py-3
@@ -263,9 +263,11 @@ function Navbar() {
                           </div>
                         </div>
                       </div>
-                    )}
-                  </div>
-                  
+
+                    </div>
+
+                  )}
+
                   {/* Hamburger Menu */}
                   <div className="hamburger-menu d-lg-none">
                     <button
@@ -326,7 +328,7 @@ function Navbar() {
         <div className="relative">
           <button
             onClick={() => setShowLoginModal(false)}
-            className="absolute top-4 right-4 z-50 text-gray-400 hover:text-gray-300 bg-transparent border-none"
+            className="absolute top-1 right-36 z-50 text-gray-400 hover:text-gray-300 hover:border-none bg-transparent border-none"
             style={{ cursor: "pointer" }}
           >
             <X size={20} />

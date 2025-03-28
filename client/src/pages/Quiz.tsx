@@ -17,7 +17,9 @@ import {
   Info,
   Eye,
   BookOpen,
-  X
+  X,
+  Menu,
+  Grid
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './Quiz.css';
@@ -35,16 +37,7 @@ interface Question {
   imageUrl?: string;
 }
 
-
-
 function Quiz() {
-  // const [currentQuestion, setCurrentQuestion] = useState(0);
-  // const [selectedAnswers, setSelectedAnswers] = useState<number[]>(Array(questions.length).fill(-1));
-  // const [showResults, setShowResults] = useState(false);
-  // const [isFullscreen, setIsFullscreen] = useState(false);
-  // const [showInstructions, setShowInstructions] = useState(true);
-  // const [timeRemaining, setTimeRemaining] = useState(30 * 60); // 30 minutes in seconds
-  // const [flaggedQuestions, setFlaggedQuestions] = useState<boolean[]>(Array(questions.length).fill(false));
   const [darkMode, setDarkMode] = useState(true);
   const [userName, setUserName] = useState("John Doe");
   const { courseId, subjectId } = useParams();
@@ -65,11 +58,10 @@ function Quiz() {
   const [flaggedQuestions, setFlaggedQuestions] = useState<boolean[]>(Array(questions.length).fill(false));
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const isWindowFocused = useWindowFocus();
-
   const [penaltyMarks, setPenaltyMarks] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   usePreventCopy();
-
 
   useEffect(() => {
     if (!isWindowFocused && !showResults && !showInstructions) {
@@ -90,7 +82,6 @@ function Quiz() {
     }
   }, [isWindowFocused]);
 
-
   useEffect(() => {
     const preventSelection = (e) => {
       e.preventDefault();
@@ -106,9 +97,6 @@ function Quiz() {
     };
   }, []);
 
-
-
-
   useEffect(() => {
     if (!quizData) {
       navigate(-1);
@@ -118,22 +106,6 @@ function Quiz() {
     setSelectedAnswers(Array(quizData.questions.length).fill(-1));
     setTimeRemaining(quizData.duration);
   }, [quizData]);
-
-
-
-
-  // useEffect(() => {
-  //   if (!quizData) {
-  //     navigate(-1);
-  //     return;
-  //   }
-
-  //   setSelectedAnswers(Array(quizData.questions.length).fill(-1));
-  //   setTimeRemaining(quizData.duration);
-  // }, [quizData]);
-
-
-  // const questions = quizData?.questions || [];
 
   // Prevent context menu (right-click)
   useEffect(() => {
@@ -161,15 +133,6 @@ function Quiz() {
     // Mock API call to fetch subject name
     const fetchSubjectName = async () => {
       try {
-        // In a real app, this would be an actual API call
-        // const token = localStorage.getItem("token");
-        // const response = await API.get(`/courses/course/${courseId}/content`, {
-        //   headers: { Authorization: `Bearer ${token}` },
-        // });
-        // const subjects = response.data.courseContent;
-        // const foundSubject = subjects.find((subj) => subj._id === subjectId);
-        // setSubjectName(foundSubject?.subjectName || "Subject");
-        
         // For demo purposes:
         setSubjectName("Data Structures");
         setCourseName("Computer Science");
@@ -263,12 +226,14 @@ function Quiz() {
   const handleNext = () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
+      setSidebarOpen(false); // Close sidebar on mobile when navigating
     }
   };
 
   const handlePrevious = () => {
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1);
+      setSidebarOpen(false); // Close sidebar on mobile when navigating
     }
   };
 
@@ -302,6 +267,7 @@ function Quiz() {
 
   const jumpToQuestion = (index: number) => {
     setCurrentQuestion(index);
+    setSidebarOpen(false); // Close sidebar on mobile after selecting a question
   };
 
   const getQuestionStatusClass = (index: number) => {
@@ -310,33 +276,37 @@ function Quiz() {
     return "unanswered";
   };
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   if (showInstructions) {
     return (
       <div className={`min-h-screen w-screen ${darkMode ? 'bg-black text-white' : 'bg-white text-black'}`}>
-        <header className={`py-4 px-6 flex justify-between items-center ${darkMode ? 'bg-zinc-900' : 'bg-gray-100'} shadow-md`}>
+        <header className={`py-3 px-4 sm:px-6 flex justify-between items-center ${darkMode ? 'bg-zinc-900' : 'bg-gray-100'} shadow-md`}>
           <div className="flex items-center gap-2">
             <BookOpen className="text-white" />
-            <h1 className="text-xl font-bold">Instruct Test</h1>
+            <h1 className="text-lg sm:text-xl font-bold">Instruct Test</h1>
           </div>
           <button 
             onClick={toggleDarkMode}
-            className={`p-2 rounded-full ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-gray-200 hover:bg-gray-300'}`}
+            className={`p-1.5 sm:p-2 rounded-full ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-gray-200 hover:bg-gray-300'}`}
           >
-            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         </header>
 
-        <main className="max-w-4xl mx-auto my-8 px-4">
-          <div className={`rounded-lg shadow-lg p-8 ${darkMode ? 'bg-zinc-900' : 'bg-white border border-gray-200'}`}>
-            <div className="flex items-center gap-3 mb-6">
-              <Info size={24} className="text-white" />
-              <h2 className="text-2xl font-bold">Test Instructions</h2>
+        <main className="max-w-4xl mx-auto my-4 sm:my-8 px-3 sm:px-4">
+          <div className={`rounded-lg shadow-lg p-4 sm:p-6 md:p-8 ${darkMode ? 'bg-zinc-900' : 'bg-white border border-gray-200'}`}>
+            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <Info size={20} className="text-white" />
+              <h2 className="text-xl sm:text-2xl font-bold">Test Instructions</h2>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <section>
-                <h3 className="text-xl font-semibold mb-2">General Information</h3>
-                <ul className="list-disc pl-5 space-y-2">
+                <h3 className="text-lg sm:text-xl font-semibold mb-2">General Information</h3>
+                <ul className="list-disc pl-5 space-y-1 sm:space-y-2 text-sm sm:text-base">
                   <li>Test Name: <span className="font-medium">{courseName} - {subjectName}</span></li>
                   <li>Duration: <span className="font-medium">30 minutes</span></li>
                   <li>Total Questions: <span className="font-medium">{questions.length}</span></li>
@@ -345,172 +315,171 @@ function Quiz() {
               </section>
 
               <section>
-                <h3 className="text-xl font-semibold mb-2">Rules</h3>
-                <ul className="list-disc pl-5 space-y-2">
+                <h3 className="text-lg sm:text-xl font-semibold mb-2">Rules</h3>
+                <ul className="list-disc pl-5 space-y-1 sm:space-y-2 text-sm sm:text-base">
                   <li>This is a <span className="font-medium">proctored test</span>. Your activities will be monitored.</li>
-                  <li><span className="font-medium">Tab switching is not allowed</span> during the test. Any attempt to switch tabs will be recorded.</li>
+                  <li><span className="font-medium">Tab switching is not allowed</span> during the test.</li>
                   <li>The test will automatically enter <span className="font-medium">fullscreen mode</span> when you start.</li>
                   <li>Each question carries <span className="font-medium">1 mark</span>.</li>
                   <li><span className="font-medium">Negative marking: 0.25 marks</span> will be deducted for each wrong answer.</li>
                   <li>You can <span className="font-medium">flag questions</span> to review them later.</li>
-                  <li>You can <span className="font-medium">navigate between questions</span> using the navigation panel or next/previous buttons.</li>
                   <li><span className="font-medium">Copying text and right-clicking</span> are disabled during the test.</li>
                 </ul>
               </section>
 
               <section>
-                <h3 className="text-xl font-semibold mb-2">Technical Requirements</h3>
-                <ul className="list-disc pl-5 space-y-2">
+                <h3 className="text-lg sm:text-xl font-semibold mb-2">Technical Requirements</h3>
+                <ul className="list-disc pl-5 space-y-1 sm:space-y-2 text-sm sm:text-base">
                   <li>Ensure you have a <span className="font-medium">stable internet connection</span>.</li>
-                  <li>Use a <span className="font-medium">modern browser</span> (Chrome, Firefox, Edge) for the best experience.</li>
+                  <li>Use a <span className="font-medium">modern browser</span> for the best experience.</li>
                   <li>Allow <span className="font-medium">fullscreen permissions</span> when prompted.</li>
                 </ul>
               </section>
 
-              <div className={`p-4 rounded-lg flex items-start gap-3 ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
-                <AlertTriangle className="mt-1 flex-shrink-0" />
+              <div className={`p-3 sm:p-4 rounded-lg flex items-start gap-2 sm:gap-3 ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
+                <AlertTriangle className="mt-1 flex-shrink-0" size={18} />
                 <div>
-                  <p className="font-medium">Important Notice</p>
-                  <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <p className="font-medium text-sm sm:text-base">Important Notice</p>
+                  <p className={`text-xs sm:text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                     By starting this test, you agree to abide by the rules mentioned above. Any violation may result in disqualification.
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-8 flex justify-center">
+            <div className="mt-6 sm:mt-8 flex justify-center">
               <button
                 onClick={handleStartTest}
-                className={`px-8 py-3 rounded-lg font-medium text-white ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-black hover:bg-gray-800'} transition-colors`}
+                className={`px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-medium text-white text-sm sm:text-base ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-black hover:bg-gray-800'} transition-colors`}
               >
                 I Understand, Start Test
               </button>
             </div>
           </div>
+
         </main>
 
-        <footer className={`text-center py-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+        <footer className={`text-center py-3 sm:py-4 text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
           Powered by Instruct.edu
         </footer>
       </div>
     );
   }
 
-
-    if (showResults) {
+  if (showResults) {
     const score = calculateScore();
     const percentage = (score / questions.length) * 100;
     const negativeMarks = (questions.length - score) * 0.25;
-    const finalScore = score - negativeMarks;
+    const finalScore = score - negativeMarks - penaltyMarks;
     const finalPercentage = (finalScore / questions.length) * 100;
 
     return (
       <div className={`min-h-screen w-screen ${darkMode ? 'bg-black text-white' : 'bg-white text-black'}`}>
-        <header className={`py-4 px-6 flex justify-between items-center ${darkMode ? 'bg-zinc-900' : 'bg-gray-100'} shadow-md`}>
+        <header className={`py-3 px-4 sm:px-6 flex justify-between items-center ${darkMode ? 'bg-zinc-900' : 'bg-gray-100'} shadow-md`}>
           <div className="flex items-center gap-2">
-            <BarChart3 className="text-white" />
-            <h1 className="text-xl font-bold">Test Results</h1>
+            <BarChart3 className="text-white" size={20} />
+            <h1 className="text-lg sm:text-xl font-bold">Test Results</h1>
           </div>
           <button 
             onClick={toggleDarkMode}
-            className={`p-2 rounded-full ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-gray-200 hover:bg-gray-300'}`}
+            className={`p-1.5 sm:p-2 rounded-full ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-gray-200 hover:bg-gray-300'}`}
           >
-            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         </header>
 
-        <main className="max-w-4xl mx-auto my-8 px-4">
-          <div className={`rounded-lg shadow-lg p-8 ${darkMode ? 'bg-zinc-900' : 'bg-white border border-gray-200'}`}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">
+        <main className="max-w-4xl mx-auto my-4 sm:my-8 px-3 sm:px-4">
+          <div className={`rounded-lg shadow-lg p-4 sm:p-6 md:p-8 ${darkMode ? 'bg-zinc-900' : 'bg-white border border-gray-200'}`}>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold">
                 {courseName} - {subjectName}
               </h2>
               <button
                 onClick={handleExitTest}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+                className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm ${
                   darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-gray-200 hover:bg-gray-100'
                 }`}
               >
-                <Home size={20} />
+                <Home size={18} />
                 Exit to Home
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className={`p-6 rounded-lg text-center ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Raw Score</p>
-                <p className="text-4xl font-bold mt-2">{score}/{questions.length}</p>
-                <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>({percentage.toFixed(1)}%)</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <div className={`p-4 sm:p-6 rounded-lg text-center ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
+                <p className={`text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Raw Score</p>
+                <p className="text-2xl sm:text-4xl font-bold mt-1 sm:mt-2">{score}/{questions.length}</p>
+                <p className={`text-xs sm:text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>({percentage.toFixed(1)}%)</p>
               </div>
               
-              <div className={`p-6 rounded-lg text-center ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Negative Marks</p>
-                <p className="text-4xl font-bold mt-2">-{negativeMarks.toFixed(2)}</p>
-      <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-        ({questions.length - score} wrong × 0.25)
-      </p>
+              <div className={`p-4 sm:p-6 rounded-lg text-center ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
+                <p className={`text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Negative Marks</p>
+                <p className="text-2xl sm:text-4xl font-bold mt-1 sm:mt-2">-{negativeMarks.toFixed(2)}</p>
+                <p className={`text-xs sm:text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  ({questions.length - score} wrong × 0.25)
+                </p>
               </div>
 
-              <div className={`p-6 rounded-lg text-center ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
-      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Penalty Marks</p>
-      <p className="text-4xl font-bold mt-2">-{penaltyMarks}</p>
-      <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-        (Tab switching violations)
-      </p>
-    </div>
+              <div className={`p-4 sm:p-6 rounded-lg text-center ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
+                <p className={`text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Penalty Marks</p>
+                <p className="text-2xl sm:text-4xl font-bold mt-1 sm:mt-2">-{penaltyMarks}</p>
+                <p className={`text-xs sm:text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  (Tab switching violations)
+                </p>
+              </div>
               
-    <div className={`p-6 rounded-lg text-center ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
-      <p className="text-sm">Final Score</p>
-      <p className="text-4xl font-bold mt-2">
-        {(score - negativeMarks - penaltyMarks).toFixed(2)}/{questions.length}
-      </p>
-      <p className="text-sm mt-1">
-        ({((score - negativeMarks - penaltyMarks) / questions.length * 100).toFixed(1)}%)
-      </p>
-    </div>
-  </div>
+              <div className={`p-4 sm:p-6 rounded-lg text-center ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
+                <p className="text-xs sm:text-sm">Final Score</p>
+                <p className="text-2xl sm:text-4xl font-bold mt-1 sm:mt-2">
+                  {finalScore.toFixed(2)}/{questions.length}
+                </p>
+                <p className="text-xs sm:text-sm mt-1">
+                  ({finalPercentage.toFixed(1)}%)
+                </p>
+              </div>
+            </div>
 
-            <div className="space-y-4 mt-8">
-              <h3 className="text-xl font-semibold mb-4">Question Analysis</h3>
+            <div className="space-y-3 sm:space-y-4 mt-6 sm:mt-8">
+              <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4">Question Analysis</h3>
               {questions.map((q, index) => (
                 <div 
                   key={q.id} 
-                  className={`rounded-lg p-4 ${
+                  className={`rounded-lg p-3 sm:p-4 ${
                     darkMode 
                       ? selectedAnswers[index] === q.correctAnswer ? 'bg-zinc-800' : 'bg-zinc-800' 
                       : selectedAnswers[index] === q.correctAnswer ? 'bg-gray-100' : 'bg-gray-100'
                   }`}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-2 sm:gap-3">
                     {selectedAnswers[index] === q.correctAnswer ? (
-                      <CheckCircle2 className="mt-1 flex-shrink-0 text-white" />
+                      <CheckCircle2 className="mt-1 flex-shrink-0 text-white" size={18} />
                     ) : (
-                      <XCircle className="mt-1 flex-shrink-0 text-white" />
+                      <XCircle className="mt-1 flex-shrink-0 text-white" size={18} />
                     )}
                     <div className="flex-1">
                       <div className="flex justify-between">
-                        <p className="font-medium">Question {index + 1}</p>
-                        <p className="text-sm">
+                        <p className="font-medium text-sm sm:text-base">Question {index + 1}</p>
+                        <p className="text-xs sm:text-sm">
                           {selectedAnswers[index] === q.correctAnswer ? '+1.00' : '-0.25'}
                         </p>
                       </div>
-                      <p className="mt-1">{q.question}</p>
+                      <p className="mt-1 text-sm sm:text-base">{q.question}</p>
                       
                       {q.hasImage && q.imageUrl && (
                         <div className="my-2">
                           <img 
                             src={q.imageUrl} 
                             alt={`Question ${index + 1}`} 
-                            className="max-h-40 rounded-md object-cover"
+                            className="max-h-32 sm:max-h-40 rounded-md object-cover"
                           />
                         </div>
                       )}
                       
-                      <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div className="mt-2 sm:mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {q.options.map((option, optIndex) => (
                           <div 
                             key={optIndex}
-                            className={`px-3 py-2 rounded text-sm ${
+                            className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm ${
                               optIndex === q.correctAnswer
                                 ? darkMode ? 'bg-zinc-700 border border-white' : 'bg-white border border-black'
                                 : optIndex === selectedAnswers[index]
@@ -520,7 +489,7 @@ function Quiz() {
                           >
                             {option}
                             {optIndex === q.correctAnswer && (
-                              <span className="ml-2">✓</span>
+                              <span className="ml-1 sm:ml-2">✓</span>
                             )}
                           </div>
                         ))}
@@ -533,7 +502,7 @@ function Quiz() {
           </div>
         </main>
 
-        <footer className={`text-center py-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+        <footer className={`text-center py-3 sm:py-4 text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
           Powered by Instruct.edu
         </footer>
       </div>
@@ -543,61 +512,86 @@ function Quiz() {
   return (
     <div className={`min-h-screen w-screen ${darkMode ? 'bg-black text-white' : 'bg-white text-black'}`}>
       {/* Header */}
-      <header className={`py-3 px-6 flex justify-between items-center ${darkMode ? 'bg-zinc-900' : 'bg-gray-100'} shadow-md`}>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Brain className="text-white" />
-            <h1 className="text-lg font-bold">Instruct Test</h1>
+      <header className={`py-2 sm:py-3 px-3 sm:px-6 flex justify-between items-center ${darkMode ? 'bg-zinc-900' : 'bg-gray-100'} shadow-md`}>
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Brain className="text-white" size={18} />
+            <h1 className="text-base sm:text-lg font-bold">Instruct Test</h1>
           </div>
-          <div className={`h-6 border-l ${darkMode ? 'border-gray-600' : 'border-gray-300'}`}></div>
-          <div>
-            <p className="text-sm font-medium">{courseName} | {subjectName}</p>
+          <div className={`hidden sm:block h-6 border-l ${darkMode ? 'border-gray-600' : 'border-gray-300'}`}></div>
+          <div className="hidden sm:block">
+            <p className="text-xs sm:text-sm font-medium">{courseName} | {subjectName}</p>
           </div>
         </div>
         
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <User size={18} />
-            <span className="text-sm font-medium">{userName}</span>
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="hidden sm:flex items-center gap-1 sm:gap-2">
+            <User size={16} />
+            <span className="text-xs sm:text-sm font-medium">{userName}</span>
           </div>
           
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${
+          <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full ${
             timeRemaining < 300 
               ? darkMode ? 'bg-zinc-800 border border-white' : 'bg-white border border-black' 
               : darkMode ? 'bg-zinc-800' : 'bg-white border border-gray-300'
           }`}>
-            <Clock size={16} />
-            <span className="text-sm font-medium">{formatTime(timeRemaining)}</span>
+            <Clock size={14} />
+            <span className="text-xs sm:text-sm font-medium">{formatTime(timeRemaining)}</span>
           </div>
           
           <button 
             onClick={toggleDarkMode}
-            className={`p-1.5 rounded-full ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-gray-200 hover:bg-gray-300'}`}
+            className={`p-1 sm:p-1.5 rounded-full ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-gray-200 hover:bg-gray-300'}`}
           >
-            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+          
+          <button
+            onClick={toggleSidebar}
+            className="sm:hidden p-1 rounded-full"
+          >
+            <Menu size={20} />
           </button>
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-56px)]">
+      <div className="flex h-[calc(100vh-48px)] sm:h-[calc(100vh-56px)]">
+        {/* Mobile sidebar overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 sm:hidden"
+            onClick={() => setSidebarOpen(false)}
+          ></div>
+        )}
+        
         {/* Sidebar */}
-        <aside className={`w-20 md:w-64 flex-shrink-0 ${darkMode ? 'bg-zinc-900' : 'bg-gray-100'} shadow-md overflow-y-auto`}>
-          <div className="p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-sm font-medium">Questions</h2>
-              <span className={`text-xs px-2 py-1 rounded ${darkMode ? 'bg-zinc-800' : 'bg-white border border-gray-300'}`}>
+        <aside 
+          className={`fixed sm:relative z-50 sm:z-auto w-64 sm:w-64 flex-shrink-0 ${darkMode ? 'bg-zinc-900' : 'bg-gray-100'} shadow-md overflow-y-auto transition-transform duration-300 ease-in-out ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full sm:translate-x-0'
+          }`}
+        >
+          <div className="p-3 sm:p-4">
+            <div className="flex justify-between items-center mb-3 sm:mb-4">
+              <h2 className="text-xs sm:text-sm font-medium">Questions</h2>
+              <span className={`text-xs px-2 py-0.5 sm:py-1 rounded ${darkMode ? 'bg-zinc-800' : 'bg-white border border-gray-300'}`}>
                 {selectedAnswers.filter(a => a !== -1).length}/{questions.length}
               </span>
+              <button 
+                className="sm:hidden p-1 rounded-full" 
+                onClick={() => setSidebarOpen(false)}
+              >
+                <X size={18} />
+              </button>
             </div>
             
-            <div className="grid grid-cols-4 md:grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 sm:grid-cols-5 gap-1 sm:gap-2">
               {questions.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => jumpToQuestion(index)}
                   className={`
-                    w-full aspect-square flex items-center justify-center rounded text-sm font-medium
-                    ${currentQuestion === index ? 'ring-2 ring-offset-2 ' + (darkMode ? 'ring-white ring-offset-zinc-900' : 'ring-black ring-offset-white') : ''}
+                    w-full aspect-square flex items-center justify-center rounded text-xs sm:text-sm font-medium
+                    ${currentQuestion === index ? 'ring-2 ring-offset-1 sm:ring-offset-2 ' + (darkMode ? 'ring-white ring-offset-zinc-900' : 'ring-black ring-offset-white') : ''}
                     ${
                       getQuestionStatusClass(index) === 'flagged'
                         ? darkMode ? 'bg-zinc-800 border border-white' : 'bg-white border border-black'
@@ -609,30 +603,30 @@ function Quiz() {
                 >
                   {index + 1}
                   {flaggedQuestions[index] && (
-                    <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-white"></span>
+                    <span className="absolute top-0 right-0 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white"></span>
                   )}
                 </button>
               ))}
             </div>
             
-            <div className="mt-6 space-y-3">
+            <div className="mt-4 sm:mt-6 space-y-2 sm:space-y-3">
               <div className="flex items-center gap-2">
-                <div className={`w-4 h-4 rounded-sm ${darkMode ? 'bg-zinc-800 border border-gray-400' : 'bg-white border border-gray-400'}`}></div>
+                <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-sm ${darkMode ? 'bg-zinc-800 border border-gray-400' : 'bg-white border border-gray-400'}`}></div>
                 <span className="text-xs">Answered</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className={`w-4 h-4 rounded-sm ${darkMode ? 'bg-zinc-800 border border-white' : 'bg-white border border-black'}`}></div>
+                <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-sm ${darkMode ? 'bg-zinc-800 border border-white' : 'bg-white border border-black'}`}></div>
                 <span className="text-xs">Flagged</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className={`w-4 h-4 rounded-sm ${darkMode ? 'bg-zinc-800' : 'bg-white border border-gray-300'}`}></div>
+                <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-sm ${darkMode ? 'bg-zinc-800' : 'bg-white border border-gray-300'}`}></div>
                 <span className="text-xs">Unanswered</span>
               </div>
             </div>
             
             <button
               onClick={handleSubmitTest}
-              className={`w-full mt-6 py-2 rounded-lg font-medium ${
+              className={`w-full mt-4 sm:mt-6 py-2 rounded-lg font-medium text-xs sm:text-sm ${
                 darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-white' : 'bg-white hover:bg-gray-100 border border-black'
               }`}
             >
@@ -642,37 +636,76 @@ function Quiz() {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className={`max-w-3xl mx-auto rounded-lg shadow-lg p-6 ${darkMode ? 'bg-zinc-900' : 'bg-white border border-gray-200'}`}>
+        <main className="flex-1 overflow-y-auto p-3 sm:p-6">
+          {/* Mobile question navigation */}
+          <div className="sm:hidden flex justify-between items-center mb-3 px-1">
+            <button
+              className={`p-1.5 rounded-lg flex items-center justify-center ${
+                currentQuestion === 0
+                  ? darkMode ? 'bg-zinc-800 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-white hover:bg-gray-100 border border-gray-300'
+              }`}
+              onClick={handlePrevious}
+              disabled={currentQuestion === 0}
+            >
+              <ChevronLeft size={18} />
+            </button>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium">
+                Question {currentQuestion + 1}/{questions.length}
+              </span>
+              <button
+                onClick={toggleSidebar}
+                className={`p-1.5 rounded-lg ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-white hover:bg-gray-100 border border-gray-300'}`}
+              >
+                <Grid size={16} />
+              </button>
+            </div>
+            
+            <button
+              className={`p-1.5 rounded-lg flex items-center justify-center ${
+                currentQuestion === questions.length - 1
+                  ? darkMode ? 'bg-zinc-800 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-white hover:bg-gray-100 border border-gray-300'
+              }`}
+              onClick={handleNext}
+              disabled={currentQuestion === questions.length - 1}
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+
+          <div className={`max-w-3xl mx-auto rounded-lg shadow-lg p-4 sm:p-6 ${darkMode ? 'bg-zinc-900' : 'bg-white border border-gray-200'}`}>
             {/* Question header */}
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-semibold">Question {currentQuestion + 1}</h2>
+                  <h2 className="text-base sm:text-lg font-semibold">Question {currentQuestion + 1}</h2>
                   <button
                     onClick={handleFlagQuestion}
-                    className={`p-1.5 rounded-full ${
+                    className={`p-1 sm:p-1.5 rounded-full ${
                       flaggedQuestions[currentQuestion]
                         ? darkMode ? 'bg-zinc-800 border border-white' : 'bg-white border border-black'
                         : darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-gray-200 hover:bg-gray-300'
                     }`}
                     title={flaggedQuestions[currentQuestion] ? "Unflag question" : "Flag for review"}
                   >
-                    <Flag size={16} />
+                    <Flag size={14} />
                   </button>
                 </div>
-                <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <p className={`text-xs mt-0.5 sm:mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                   {selectedAnswers[currentQuestion] === -1 ? 'Not answered yet' : 'Answered'}
                 </p>
               </div>
               
-              <div className="flex items-center gap-2">
-                <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <div className="hidden sm:flex items-center gap-2">
+                <span className={`text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                   {currentQuestion + 1} of {questions.length}
                 </span>
-                <div className={`w-24 h-2 rounded-full ${darkMode ? 'bg-zinc-800' : 'bg-gray-200'}`}>
+                <div className={`w-16 sm:w-24 h-1.5 sm:h-2 rounded-full ${darkMode ? 'bg-zinc-800' : 'bg-gray-200'}`}>
                   <div 
-                    className="h-2 rounded-full bg-white"
+                    className="h-full rounded-full bg-white"
                     style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
                   ></div>
                 </div>
@@ -680,24 +713,24 @@ function Quiz() {
             </div>
 
             {/* Question content */}
-            <div className="mb-6">
-              <h3 className="text-xl font-medium mb-4">{questions[currentQuestion].question}</h3>
+            <div className="mb-4 sm:mb-6">
+              <h3 className="text-base sm:text-xl font-medium mb-3 sm:mb-4">{questions[currentQuestion].question}</h3>
               
               {questions[currentQuestion].hasImage && questions[currentQuestion].imageUrl && (
-                <div className="mb-4">
+                <div className="mb-3 sm:mb-4">
                   <img 
                     src={questions[currentQuestion].imageUrl} 
                     alt={`Question ${currentQuestion + 1}`} 
-                    className="max-h-60 rounded-lg object-cover mx-auto"
+                    className="max-h-40 sm:max-h-60 rounded-lg object-cover mx-auto"
                   />
                 </div>
               )}
               
-              <div className="space-y-3 mt-6">
+              <div className="space-y-2 sm:space-y-3 mt-4 sm:mt-6">
                 {questions[currentQuestion].options.map((option, index) => (
                   <button
                     key={index}
-                    className={`w-full text-left p-4 rounded-lg transition-all flex justify-between items-center ${
+                    className={`w-full text-left p-3 sm:p-4 rounded-lg transition-all flex justify-between items-center ${
                       selectedAnswers[currentQuestion] === index
                         ? darkMode 
                           ? 'bg-zinc-800 border-2 border-white' 
@@ -708,8 +741,8 @@ function Quiz() {
                     }`}
                     onClick={() => handleAnswerSelect(index)}
                   >
-                    <span className="flex items-center gap-3">
-                      <span className={`flex items-center justify-center w-6 h-6 rounded-full text-sm ${
+                    <span className="flex items-center gap-2 sm:gap-3 text-sm sm:text-base">
+                      <span className={`flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full text-xs sm:text-sm ${
                         selectedAnswers[currentQuestion] === index
                           ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
                           : darkMode ? 'bg-zinc-700 text-gray-300' : 'bg-gray-200 text-gray-700'
@@ -719,7 +752,7 @@ function Quiz() {
                       {option}
                     </span>
                     {selectedAnswers[currentQuestion] === index && (
-                      <Check className="w-5 h-5" />
+                      <Check className="w-4 h-4 sm:w-5 sm:h-5" />
                     )}
                   </button>
                 ))}
@@ -727,9 +760,9 @@ function Quiz() {
             </div>
 
             {/* Navigation buttons */}
-            <div className="flex justify-between mt-8">
+            <div className="flex justify-between mt-6 sm:mt-8">
               <button
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                className={`hidden sm:flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg items-center gap-1 sm:gap-2 text-sm ${
                   currentQuestion === 0
                     ? darkMode ? 'bg-zinc-800 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     : darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-gray-600' : 'bg-white hover:bg-gray-100 border border-gray-300'
@@ -737,26 +770,26 @@ function Quiz() {
                 onClick={handlePrevious}
                 disabled={currentQuestion === 0}
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={18} />
                 Previous
               </button>
               
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full sm:w-auto justify-between sm:justify-end">
                 <button
-                  className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center gap-1 sm:gap-2 text-sm ${
                     flaggedQuestions[currentQuestion]
                       ? darkMode ? 'bg-zinc-800 border border-white' : 'bg-white border border-black'
                       : darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-gray-600' : 'bg-white hover:bg-gray-100 border border-gray-300'
                   }`}
                   onClick={handleFlagQuestion}
                 >
-                  <Flag size={20} />
-                  {flaggedQuestions[currentQuestion] ? 'Unflag' : 'Flag'}
+                  <Flag size={16} />
+                  <span className="hidden sm:inline">{flaggedQuestions[currentQuestion] ? 'Unflag' : 'Flag'}</span>
                 </button>
                 
                 {currentQuestion === questions.length - 1 ? (
                   <button
-                    className={`px-6 py-2 rounded-lg font-medium ${
+                    className={`px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg font-medium text-sm ${
                       darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-white' : 'bg-white hover:bg-gray-100 border border-black'
                     }`}
                     onClick={handleSubmitTest}
@@ -765,17 +798,46 @@ function Quiz() {
                   </button>
                 ) : (
                   <button
-                    className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                    className={`hidden sm:flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg items-center gap-1 sm:gap-2 text-sm ${
                       darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-white' : 'bg-white hover:bg-gray-100 border border-black'
                     }`}
                     onClick={handleNext}
                   >
                     Next
-                    <ChevronRight size={20} />
+                    <ChevronRight size={18} />
                   </button>
                 )}
               </div>
             </div>
+          </div>
+          
+          {/* Mobile bottom navigation */}
+          <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-zinc-900 p-3 flex justify-between items-center shadow-lg">
+            {currentQuestion === questions.length - 1 ? (
+              <button
+                className={`w-full py-2 rounded-lg font-medium text-sm ${
+                  darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-white' : 'bg-white hover:bg-gray-100 border border-black'
+                }`}
+                onClick={handleSubmitTest}
+              >
+                Submit Test
+              </button>
+            ) : (
+              <>
+                <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {selectedAnswers.filter(a => a !== -1).length}/{questions.length} answered
+                </span>
+                <button
+                  className={`px-4 py-2 rounded-lg flex items-center gap-1 text-sm ${
+                    darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-white' : 'bg-white hover:bg-gray-100 border border-black'
+                  }`}
+                  onClick={handleNext}
+                >
+                  Next
+                  <ChevronRight size={16} />
+                </button>
+              </>
+            )}
           </div>
         </main>
       </div>
@@ -784,3 +846,4 @@ function Quiz() {
 }
 
 export default Quiz;
+

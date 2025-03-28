@@ -51,12 +51,13 @@ const PORT = process.env.PORT || 5000;
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     console.log("MongoDB connected!");
-    
+
     // 1) Create default admin if not exists
     createDefaultAdmin();
   })
   .catch((err) => console.error(err));
 
+// This function checks if admin user exists, otherwise creates one
 // This function checks if admin user exists, otherwise creates one
 async function createDefaultAdmin() {
   try {
@@ -68,10 +69,14 @@ async function createDefaultAdmin() {
       const hashedPassword = await bcrypt.hash("admin", salt);
 
       const adminUser = new User({
-        name: "Default Admin",
+        firstName: "Default",
+        lastName: "Admin",
         email: adminEmail,
         password: hashedPassword,
+        phoneNumber: "1234567890",
         type: "admin",
+        adminRole: "Super Admin",
+        is_verified: true
       });
 
       await adminUser.save();
@@ -83,6 +88,7 @@ async function createDefaultAdmin() {
     console.error("Error creating default admin user:", error.message);
   }
 }
+
 
 
 
