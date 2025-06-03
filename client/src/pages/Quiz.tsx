@@ -9,6 +9,7 @@ import {
   Home,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,  // Added ChevronDown
   Clock,
   Flag,
   Moon,
@@ -19,7 +20,9 @@ import {
   BookOpen,
   X,
   Menu,
-  Grid
+  Grid,
+  ExternalLink,  // Added ExternalLink
+  SkipForward  // Added SkipForward
 } from 'lucide-react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import './Quiz.css';
@@ -427,8 +430,8 @@ function Quiz() {
 
   if (showInstructions) {
     return (
-      <div className={`min-h-screen w-[98vw] ${darkMode ? 'bg-black text-white' : 'bg-white text-black'}`}>
-        <header className={`py-3 px-4 sm:px-6 flex justify-between items-center ${darkMode ? 'bg-zinc-900' : 'bg-gray-100'} shadow-md`}>
+      <div className="min-h-screen w-[98vw] bg-black text-white">
+        <header className="py-3 px-4 sm:px-6 flex justify-between items-center bg-[#111827] shadow-md">
           <div className="flex items-center gap-2">
             <img
               src="https://instructedu.s3.eu-north-1.amazonaws.com/main+logoo.svg"
@@ -436,16 +439,16 @@ function Quiz() {
               style={{ maxWidth: "100%" }}
             />
           </div>
-          {/* <button 
+          <div 
             onClick={toggleDarkMode}
-            className={`p-1.5 sm:p-2 rounded-full ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-gray-200 hover:bg-gray-300'}`}
+            className="p-1.5 sm:p-2 rounded-full bg-[#1a2436] hover:bg-gray-700"
           >
-            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </button> */}
+            <Sun size={18} />
+          </div>
         </header>
 
         <main className="max-w-4xl mx-auto my-4 sm:my-8 px-3 sm:px-4">
-          <div className={`rounded-lg shadow-lg p-4 sm:p-6 md:p-8 ${darkMode ? 'bg-zinc-900' : 'bg-white border border-gray-200'}`}>
+          <div className="rounded-lg shadow-lg p-4 sm:p-6 md:p-8 bg-[#111827]">
             <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
               <Info size={20} className="text-white" />
               <h2 className="text-xl sm:text-2xl font-bold">Test Instructions</h2>
@@ -457,11 +460,9 @@ function Quiz() {
                 <ul className="list-disc pl-5 space-y-1 sm:space-y-2 text-sm sm:text-base">
                   <li>Test Name: <span className="font-medium">{courseName} - {subjectName}</span></li>
                   <li> Chapter Name: <span className="font-medium">{chapterName}</span></li>
-                  
                   <li>Duration: <span className="font-medium">30 minutes</span></li>
                   <li>Total Questions: <span className="font-medium">{questions.length}</span></li>
                   <li>Question Type: <span className="font-medium">Multiple Choice Questions (MCQs)</span></li>
-
                 </ul>
               </section>
 
@@ -487,11 +488,11 @@ function Quiz() {
                 </ul>
               </section>
 
-              <div className={`p-3 sm:p-4 rounded-lg flex items-start gap-2 sm:gap-3 ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
+              <div className="p-3 sm:p-4 rounded-lg flex items-start gap-2 sm:gap-3 bg-[#1a2436]">
                 <AlertTriangle className="mt-1 flex-shrink-0" size={18} />
                 <div>
                   <p className="font-medium text-sm sm:text-base">Important Notice</p>
-                  <p className={`text-xs sm:text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <p className="text-xs sm:text-sm text-gray-300">
                     By starting this test, you agree to abide by the rules mentioned above. Any violation may result in disqualification.
                   </p>
                 </div>
@@ -501,16 +502,15 @@ function Quiz() {
             <div className="mt-6 sm:mt-8 flex justify-center">
               <div
                 onClick={handleStartTest}
-                className={`px-6 sm:px-8 cursor-pointer py-2.5 sm:py-3 rounded-lg font-medium text-white text-sm sm:text-base ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-black hover:bg-gray-800'} transition-colors`}
+                className="px-6 sm:px-8 cursor-pointer py-2.5 sm:py-3 rounded-lg font-medium text-white text-sm sm:text-base bg-[#1a2436] hover:bg-gray-700 border border-white transition-colors"
               >
                 I Understand, Start Test
               </div>
             </div>
           </div>
-
         </main>
 
-        <footer className={`text-center py-3 sm:py-4 text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+        <footer className="text-center py-3 sm:py-4 text-xs sm:text-sm text-gray-400">
           Powered by Instruct.edu
         </footer>
       </div>
@@ -524,137 +524,243 @@ function Quiz() {
     const finalScore = score - negativeMarks - penaltyMarks;
     const finalPercentage = (finalScore / questions.length) * 100;
 
+    // Group questions by subject
+    const subjectQuestions = questions.reduce((acc, question, index) => {
+      const subject = question.subject || "General";
+      if (!acc[subject]) acc[subject] = [];
+      acc[subject].push({ ...question, index });
+      return acc;
+    }, {});
+
     return (
-      <div className={`min-h-screen w-[98vw] ${darkMode ? 'bg-black text-white' : 'bg-white text-black'}`}>
-        <header className={`py-3 px-4 sm:px-6 flex justify-between items-center ${darkMode ? 'bg-zinc-900' : 'bg-gray-100'} shadow-md`}>
-          <div className="flex items-center gap-2">
-            <img
-              src="https://instructedu.s3.eu-north-1.amazonaws.com/main+logoo.svg"
-              alt="Logo"
-              style={{ maxWidth: "100%" }}
-            />
+      <div className="min-h-screen w-[98vw] bg-black text-white">
+        {/* Header */}
+        <header className="py-2 sm:py-3 px-3 sm:px-6 flex justify-between items-center bg-[#111827] shadow-md">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-1 sm:gap-2">
+              <img
+                src="https://instructedu.s3.eu-north-1.amazonaws.com/main+logoo.svg"
+                alt="Logo"
+                style={{ maxWidth: "100%" }}
+              />
+            </div>
+            <div className="hidden sm:block h-6 border-l border-gray-600"></div>
+            <div className="hidden sm:block">
+              <p className="text-xs sm:text-sm font-medium">{subjectName} | {chapterName}</p>
+            </div>
           </div>
-          <div
-            onClick={handleBack}
-            className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-gray-200 hover:bg-gray-100'}`}
-          >
-            <ChevronLeft size={18} />
-            Back
+
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="hidden sm:flex items-center gap-1 sm:gap-2">
+              <User size={16} />
+              <span className="text-xs sm:text-sm font-medium">{userName}</span>
+            </div>
+
+            <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full ${
+              timeRemaining < 300
+                ? 'bg-[#1a2436] border border-white'
+                : 'bg-[#1a2436]'
+            }`}>
+              <Clock size={14} />
+              <span className="text-xs sm:text-sm font-medium">{formatTime(timeRemaining)}</span>
+            </div>
+
+            <div
+              onClick={toggleDarkMode}
+              className="p-1 sm:p-1.5 rounded-full bg-[#1a2436] hover:bg-gray-700"
+            >
+              <Sun size={16} />
+            </div>
+
+            <div
+              onClick={handleBack}
+              className="p-1.5 px-3 flex text-center align-middle items-center gap-2 rounded-2xl  bg-[#1a2436] hover:bg-gray-700"
+            >
+          <ChevronLeft size={16} /> Go Back 
+            </div>
           </div>
         </header>
 
         <main className="max-w-4xl mx-auto my-4 sm:my-8 px-3 sm:px-4">
-          <div className={`rounded-lg shadow-lg p-4 sm:p-6 md:p-8 ${darkMode ? 'bg-zinc-900' : 'bg-white border border-gray-200'}`}>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold">
-                Your test result are out
-              </h2>
+          {/* Results Header */}
+          <div className="flex justify-between items-center mb-1">
+            <h1 className="text-3xl font-bold text-white">Your Quiz Results</h1>
+            <div className="relative">
+              <div className="bg-gray-700 rounded-md px-3 py-1 text-sm">
+                Attempt 1 <ChevronDown className="inline h-4 w-4" />
+              </div>
+            </div>
+          </div>
+          <p className="text-[#c6c6c4] mb-8">Completed on April 9, 2025 at 11:32 AM</p>
+          
+          {/* Score Card */}
+          <div className="bg-[#111827] rounded-[2.75rem] p-6 sm:p-8 flex flex-col items-center mt-3 mb-8">
+            <h2 className="text-xl text-[#c6c6c4] mb-4">Final Score</h2>
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <span className="text-4xl sm:text-6xl font-bold text-[#eb9f18]">{finalScore.toFixed(0)}</span>
+              <span className="text-2xl sm:text-3xl text-[#c6c6c4]">/{questions.length}</span>
+            </div>
+            
+            <div className="w-full max-w-md mb-2">
+              <div className="w-full bg-gray-800 rounded-full h-3">
+                <div 
+                  className="bg-[#eb9f18] h-3 rounded-full transition-all duration-300" 
+                  style={{ width: `${finalPercentage}%` }}
+                ></div>
+              </div>
+            </div>
+            
+            <p className="text-[#c6c6c4]">{finalPercentage.toFixed(0)}% success rate</p>
+          </div>
+
+          {/* Subject Tabs */}
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-6">
+            <div className="px-4 py-2 rounded-full text-sm whitespace-nowrap bg-[#eb9f18] text-black font-medium">
+              All Subjects
+            </div>
+            {Object.keys(subjectQuestions).map((subject) => (
               <div
-                onClick={handleExitTest}
-                className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-gray-200 hover:bg-gray-100'
-                  }`}
+                key={subject}
+                className="px-4 py-2 rounded-full text-sm whitespace-nowrap bg-gray-800 text-white hover:bg-gray-700"
               >
-                <Home size={18} />
-                Exit to Home
+                {subject}
               </div>
+            ))}
+          </div>
+          
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            {/* Correct Card */}
+            <div className="bg-[#111827] rounded-[1.5rem] p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="bg-green-900/50 text-green-500 rounded-full p-2">
+                  <CheckCircle2 className="h-5 w-5" />
+                </span>
+                <h3 className="text-base text-white font-medium">Correct</h3>
+              </div>
+              <p className="text-2xl font-bold text-white mb-2">{score}/{questions.length}</p>
+              <p className="text-sm text-green-500">+{score * 4} Marks Obtained</p>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-              <div className={`p-4 sm:p-6 rounded-lg text-center ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
-                <p className={`text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Raw Score</p>
-                <p className="text-2xl sm:text-4xl font-bold mt-1 sm:mt-2">{score}/{questions.length}</p>
-                <p className={`text-xs sm:text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>({percentage.toFixed(1)}%)</p>
+            
+            {/* Incorrect Card */}
+            <div className="bg-[#111827] rounded-[1.5rem] p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="bg-red-900/50 text-red-500 rounded-full p-2">
+                  <XCircle className="h-5 w-5" />
+                </span>
+                <h3 className="text-base text-white font-medium">Incorrect</h3>
               </div>
-
-              <div className={`p-4 sm:p-6 rounded-lg text-center ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
-                <p className={`text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Negative Marks</p>
-                <p className="text-2xl sm:text-4xl font-bold mt-1 sm:mt-2">-{negativeMarks.toFixed(2)}</p>
-                <p className={`text-xs sm:text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  ({questions.length - score} wrong × 0.25)
-                </p>
-              </div>
-
-              <div className={`p-4 sm:p-6 rounded-lg text-center ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
-                <p className={`text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Penalty Marks</p>
-                <p className="text-2xl sm:text-4xl font-bold mt-1 sm:mt-2">-{penaltyMarks}</p>
-                <p className={`text-xs sm:text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  (Tab switching violations)
-                </p>
-              </div>
-
-              <div className={`p-4 sm:p-6 rounded-lg text-center ${darkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
-                <p className="text-xs sm:text-sm">Final Score</p>
-                <p className="text-2xl sm:text-4xl font-bold mt-1 sm:mt-2">
-                  {finalScore.toFixed(2)}/{questions.length}
-                </p>
-                <p className="text-xs sm:text-sm mt-1">
-                  ({finalPercentage.toFixed(1)}%)
-                </p>
-              </div>
+              <p className="text-2xl font-bold text-white mb-2">{questions.length - score - selectedAnswers.filter(a => a === -1).length}/{questions.length}</p>
+              <p className="text-sm text-red-500">-{(questions.length - score - selectedAnswers.filter(a => a === -1).length)} Marks Lost</p>
             </div>
-
-            <div className="space-y-3 sm:space-y-4 mt-6 sm:mt-8">
-              <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4">Question Analysis</h3>
-              {questions.map((q, index) => (
-                <div
-                  key={q.id}
-                  className={`rounded-lg p-3 sm:p-4 ${darkMode
-                      ? selectedAnswers[index] === q.correctAnswer ? 'bg-zinc-800' : 'bg-zinc-800'
-                      : selectedAnswers[index] === q.correctAnswer ? 'bg-gray-100' : 'bg-gray-100'
-                    }`}
-                >
-                  <div className="flex items-start gap-2 sm:gap-3">
-                    {selectedAnswers[index] === q.correctAnswer ? (
-                      <CheckCircle2 className="mt-1 flex-shrink-0 text-white" size={18} />
-                    ) : (
-                      <XCircle className="mt-1 flex-shrink-0 text-white" size={18} />
-                    )}
-                    <div className="flex-1">
-                      <div className="flex justify-between">
-                        <p className="font-medium text-sm sm:text-base">Question {index + 1}</p>
-                        <p className="text-xs sm:text-sm">
-                          {selectedAnswers[index] === q.correctAnswer ? '+1.00' : '-0.25'}
-                        </p>
-                      </div>
-                      <p className="mt-1 text-sm sm:text-base">{q.question}</p>
-
-                      {q.hasImage && q.imageUrl && (
-                        <div className="my-2">
-                          <img
-                            src={q.imageUrl}
-                            alt={`Question ${index + 1}`}
-                            className="max-h-32 sm:max-h-40 rounded-md object-cover"
-                          />
-                        </div>
-                      )}
-
-                      <div className="mt-2 sm:mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {q.options.map((option, optIndex) => (
-                          <div
-                            key={optIndex}
-                            className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm ${optIndex === q.correctAnswer
-                                ? darkMode ? 'bg-zinc-700 border border-white' : 'bg-white border border-black'
-                                : optIndex === selectedAnswers[index]
-                                  ? darkMode ? 'bg-zinc-700 border border-gray-500' : 'bg-white border border-gray-400'
-                                  : darkMode ? 'bg-zinc-700' : 'bg-white border border-gray-300'
-                              }`}
-                          >
-                            {option}
-                            {optIndex === q.correctAnswer && (
-                              <span className="ml-1 sm:ml-2">✓</span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+            
+            {/* Skipped Card */}
+            <div className="bg-[#111827] rounded-[1.5rem] p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="bg-blue-900/50 text-blue-500 rounded-full p-2">
+                  <SkipForward className="h-5 w-5" />
+                </span>
+                <h3 className="text-base text-white font-medium">Skipped</h3>
+              </div>
+              <p className="text-2xl font-bold text-white mb-2">{selectedAnswers.filter(a => a === -1).length}/{questions.length}</p>
+              <p className="text-sm text-blue-500">{selectedAnswers.filter(a => a === -1).length * 4} Marks Skipped</p>
+            </div>
+            
+            {/* Time Taken Card */}
+            <div className="bg-[#111827] rounded-[1.5rem] p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="bg-purple-900/50 text-purple-500 rounded-full p-2">
+                  <Clock className="h-5 w-5" />
+                </span>
+                <h3 className="text-base text-white font-medium">Time Taken</h3>
+              </div>
+              <p className="text-2xl font-bold text-white mb-2">
+                {formatTime(quizData?.duration - timeRemaining)}
+              </p>
+              <p className="text-sm text-[#c6c6c4]">{(score / questions.length * 100).toFixed(1)}% Accuracy</p>
+            </div>
+          </div>
+          
+          {/* Question Analysis */}
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Question Analysis</h2>
+              <div className="relative">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/30 text-white text-sm font-medium hover:bg-black/50">
+                  <ChevronDown className="h-4 w-4" /> Sort By
                 </div>
-              ))}
+              </div>
             </div>
+            
+            {Object.entries(subjectQuestions).map(([subject, subjectQs]) => (
+              <div key={subject} className="mb-8">
+                <div className="flex justify-center mb-6">
+                  <h3 className="text-xl font-bold text-white px-6 py-2 bg-[#1a2436] rounded-full capitalize">
+                    {subject}
+                  </h3>
+                </div>
+                <div className="space-y-4">
+                  {(subjectQs as any[]).map((question, idx) => {
+                    const qIndex = question.index;
+                    const isCorrect = selectedAnswers[qIndex] === question.correctAnswer;
+                    const statusIcon = isCorrect ? 
+                      <CheckCircle2 className="w-6 h-6 text-green-500" /> : 
+                      <XCircle className="w-6 h-6 text-red-500" />;
+                    
+                    return (
+                      <div key={idx} className="bg-[#111827] rounded-xl overflow-hidden">
+                        <div className="p-5">
+                          <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0 mt-1">
+                              {statusIcon}
+                            </div>
+                            
+                            <div className="flex-grow">
+                              <h4 className="text-md font-medium mb-2">
+                                {idx + 1}. {question.question}
+                              </h4>
+                              
+                              <div className="space-y-2 mt-4">
+                                {question.options.map((option, optIdx) => (
+                                  <div
+                                    key={optIdx}
+                                    className={`p-3 rounded-lg ${
+                                      optIdx === question.correctAnswer
+                                        ? 'bg-green-500/20 border border-green-500'
+                                        : optIdx === selectedAnswers[qIndex] && optIdx !== question.correctAnswer
+                                          ? 'bg-red-500/20 border border-red-500'
+                                          : 'bg-gray-700'
+                                    }`}
+                                  >
+                                    {option}
+                                  </div>
+                                ))}
+                              </div>
+                              
+                              <div className="flex justify-between items-center mt-4">
+                                <div
+                                  className="text-gray-400 text-sm flex items-center gap-1"
+                                >
+                                  View More (30 Sec)
+                                </div>
+                                
+                                <div className="text-[#eb9f18] text-sm flex items-center gap-1">
+                                  View Solution <ExternalLink className="h-4 w-4 ml-1" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </main>
 
-        <footer className={`text-center py-3 sm:py-4 text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+        <footer className="text-center py-3 sm:py-4 text-xs sm:text-sm text-gray-400">
           Powered by Instruct.edu
         </footer>
       </div>
@@ -662,9 +768,9 @@ function Quiz() {
   }
 
   return (
-    <div className={`min-h-screen w-[98vw] ${darkMode ? 'bg-black text-white' : 'bg-white text-black'}`}>
+    <div className="min-h-screen w-[98vw] bg-black text-white">
       {/* Header */}
-      <header className={`py-2 sm:py-3 px-3 sm:px-6 flex justify-between items-center ${darkMode ? 'bg-zinc-900' : 'bg-gray-100'} shadow-md`}>
+      <header className="py-2 sm:py-3 px-3 sm:px-6 flex justify-between items-center bg-[#111827] shadow-md">
         <div className="flex items-center gap-2 sm:gap-4">
           <div className="flex items-center gap-1 sm:gap-2">
             <img
@@ -673,10 +779,9 @@ function Quiz() {
               style={{ maxWidth: "100%" }}
             />
           </div>
-          <div className={`hidden sm:block h-6 border-l ${darkMode ? 'border-gray-600' : 'border-gray-300'}`}></div>
+          <div className="hidden sm:block h-6 border-l border-gray-600"></div>
           <div className="hidden sm:block">
             <p className="text-xs sm:text-sm font-medium">{subjectName} | {chapterName}</p>
-            {/* <p className="text-xs text-gray-400">{userName}</p> */}
           </div>
         </div>
 
@@ -686,27 +791,28 @@ function Quiz() {
             <span className="text-xs sm:text-sm font-medium">{userName}</span>
           </div>
 
-          <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full ${timeRemaining < 300
-              ? darkMode ? 'bg-zinc-800 border border-white' : 'bg-white border border-black'
-              : darkMode ? 'bg-zinc-800' : 'bg-white border border-gray-300'
-            }`}>
+          <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full ${
+            timeRemaining < 300
+              ? 'bg-[#1a2436] border border-white'
+              : 'bg-[#1a2436]'
+          }`}>
             <Clock size={14} />
             <span className="text-xs sm:text-sm font-medium">{formatTime(timeRemaining)}</span>
           </div>
 
-          <button
+          <div
             onClick={toggleDarkMode}
-            className={`p-1 sm:p-1.5 rounded-full ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-gray-200 hover:bg-gray-300'}`}
+            className="p-1 sm:p-1.5 rounded-full bg-[#1a2436] hover:bg-gray-700"
           >
-            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
+            <Sun size={16} />
+          </div>
 
-          <button
+          <div
             onClick={toggleSidebar}
             className="sm:hidden p-1 rounded-full"
           >
             <Menu size={20} />
-          </button>
+          </div>
         </div>
       </header>
 
@@ -721,13 +827,14 @@ function Quiz() {
 
         {/* Sidebar */}
         <aside
-          className={`fixed sm:relative z-50 sm:z-auto w-64 sm:w-64 flex-shrink-0 ${darkMode ? 'bg-zinc-900' : 'bg-gray-100'} shadow-md overflow-y-auto transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full sm:translate-x-0'
-            }`}
+          className={`fixed sm:relative z-50 sm:z-auto w-64 sm:w-64 flex-shrink-0 bg-[#111827] shadow-md overflow-y-auto transition-transform duration-300 ease-in-out ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full sm:translate-x-0'
+          }`}
         >
           <div className="p-3 sm:p-4">
             <div className="flex justify-between items-center mb-3 sm:mb-4">
               <h2 className="text-xs sm:text-sm font-medium">Questions</h2>
-              <span className={`text-xs px-2 py-0.5 sm:py-1 rounded ${darkMode ? 'bg-zinc-800' : 'bg-white border border-gray-300'}`}>
+              <span className="text-xs px-2 py-0.5 sm:py-1 rounded bg-[#1a2436]">
                 {selectedAnswers.filter(a => a !== -1).length}/{questions.length}
               </span>
               <button
@@ -745,12 +852,12 @@ function Quiz() {
                   onClick={() => jumpToQuestion(index)}
                   className={`
                     w-full aspect-square flex items-center justify-center rounded text-xs sm:text-sm font-medium
-                    ${currentQuestion === index ? 'ring-2 ring-offset-1 sm:ring-offset-2 ' + (darkMode ? 'ring-white ring-offset-zinc-900' : 'ring-black ring-offset-white') : ''}
+                    ${currentQuestion === index ? 'ring-2 ring-offset-1 sm:ring-offset-2 ring-white ring-offset-[#111827]' : ''}
                     ${getQuestionStatusClass(index) === 'flagged'
-                      ? darkMode ? 'bg-zinc-800 border border-white' : 'bg-white border border-black'
+                      ? 'bg-[#1a2436] border border-white'
                       : getQuestionStatusClass(index) === 'answered'
-                        ? darkMode ? 'bg-zinc-800 border border-gray-400' : 'bg-white border border-gray-400'
-                        : darkMode ? 'bg-zinc-800' : 'bg-white border border-gray-300'
+                        ? 'bg-[#1a2436] border border-gray-400'
+                        : 'bg-[#1a2436]'
                     }
                   `}
                 >
@@ -764,23 +871,22 @@ function Quiz() {
 
             <div className="mt-4 sm:mt-6 space-y-2 sm:space-y-3">
               <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-sm ${darkMode ? 'bg-zinc-800 border border-gray-400' : 'bg-white border border-gray-400'}`}></div>
+                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-sm bg-[#1a2436] border border-gray-400"></div>
                 <span className="text-xs">Answered</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-sm ${darkMode ? 'bg-zinc-800 border border-white' : 'bg-white border border-black'}`}></div>
+                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-sm bg-[#1a2436] border border-white"></div>
                 <span className="text-xs">Flagged</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-sm ${darkMode ? 'bg-zinc-800' : 'bg-white border border-gray-300'}`}></div>
+                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-sm bg-[#1a2436]"></div>
                 <span className="text-xs">Unanswered</span>
               </div>
             </div>
 
             <div
               onClick={handleSubmitTest}
-              className={`w-full text-center mt-4 sm:mt-6 py-2 rounded-lg font-medium text-xs sm:text-sm ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-white' : 'bg-white hover:bg-gray-100 border border-black'
-                }`}
+              className="w-full text-center mt-4 sm:mt-6 py-2 rounded-lg font-medium text-xs sm:text-sm bg-[#1a2436] hover:bg-gray-700 border border-white"
             >
               Submit Test
             </div>
@@ -792,10 +898,11 @@ function Quiz() {
           {/* Mobile question navigation */}
           <div className="sm:hidden flex justify-between items-center mb-3 px-1">
             <button
-              className={`p-1.5 rounded-lg flex items-center justify-center ${currentQuestion === 0
-                  ? darkMode ? 'bg-zinc-800 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  : darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-white hover:bg-gray-100 border border-gray-300'
-                }`}
+              className={`p-1.5 rounded-lg flex items-center justify-center ${
+                currentQuestion === 0
+                  ? 'bg-[#1a2436] text-gray-500 cursor-not-allowed'
+                  : 'bg-[#1a2436] hover:bg-gray-700'
+              }`}
               onClick={handlePrevious}
               disabled={currentQuestion === 0}
             >
@@ -808,17 +915,18 @@ function Quiz() {
               </span>
               <button
                 onClick={toggleSidebar}
-                className={`p-1.5 rounded-lg ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-white hover:bg-gray-100 border border-gray-300'}`}
+                className="p-1.5 rounded-lg bg-[#1a2436] hover:bg-gray-700"
               >
                 <Grid size={16} />
               </button>
             </div>
 
             <button
-              className={`p-1.5 rounded-lg flex items-center justify-center ${currentQuestion === questions.length - 1
-                  ? darkMode ? 'bg-zinc-800 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  : darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-white hover:bg-gray-100 border border-gray-300'
-                }`}
+              className={`p-1.5 rounded-lg flex items-center justify-center ${
+                currentQuestion === questions.length - 1
+                  ? 'bg-[#1a2436] text-gray-500 cursor-not-allowed'
+                  : 'bg-[#1a2436] hover:bg-gray-700'
+              }`}
               onClick={handleNext}
               disabled={currentQuestion === questions.length - 1}
             >
@@ -826,7 +934,7 @@ function Quiz() {
             </button>
           </div>
 
-          <div className={`max-w-3xl mx-auto rounded-lg shadow-lg p-4 sm:p-6 ${darkMode ? 'bg-zinc-900' : 'bg-white border border-gray-200'}`}>
+          <div className="max-w-3xl mx-auto rounded-lg shadow-lg p-4 sm:p-6 bg-[#111827]">
             {/* Question header */}
             <div className="flex justify-between items-center mb-4 sm:mb-6">
               <div>
@@ -834,27 +942,28 @@ function Quiz() {
                   <h2 className="text-base sm:text-lg font-semibold">Question {currentQuestion + 1}</h2>
                   <button
                     onClick={handleReviewQuestion}
-                    className={`p-1 sm:p-1.5 rounded-full ${reviewedQuestions[currentQuestion]
-                        ? darkMode ? 'bg-zinc-800 border border-white' : 'bg-white border border-black'
-                        : darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-gray-200 hover:bg-gray-300'
-                      }`}
+                    className={`p-1 sm:p-1.5 rounded-full ${
+                      reviewedQuestions[currentQuestion]
+                        ? 'bg-[#1a2436] border border-white'
+                        : 'bg-[#1a2436] hover:bg-gray-700'
+                    }`}
                     title={reviewedQuestions[currentQuestion] ? "Remove from review" : "Mark for review"}
                   >
                     <BookOpen size={14} />
                   </button>
                 </div>
-                <p className={`text-xs mt-0.5 sm:mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <p className="text-xs mt-0.5 sm:mt-1 text-gray-400">
                   {selectedAnswers[currentQuestion] === -1 ? 'Not answered yet' : 'Answered'}
                 </p>
               </div>
 
               <div className="hidden sm:flex items-center gap-2">
-                <span className={`text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <span className="text-xs sm:text-sm text-gray-400">
                   {currentQuestion + 1} of {questions.length}
                 </span>
-                <div className={`w-16 sm:w-24 h-1.5 sm:h-2 rounded-full ${darkMode ? 'bg-zinc-800' : 'bg-gray-200'}`}>
+                <div className="w-16 sm:w-24 h-1.5 sm:h-2 rounded-full bg-[#1a2436]">
                   <div
-                    className="h-full rounded-full bg-white"
+                    className="h-full rounded-full bg-[#eb9f18]"
                     style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
                   ></div>
                 </div>
@@ -879,27 +988,25 @@ function Quiz() {
                 {questions[currentQuestion].options.map((option, index) => (
                   <div
                     key={index}
-                    className={`w-full text-left p-3 sm:p-4 rounded-lg transition-all flex justify-between items-center ${selectedAnswers[currentQuestion] === index
-                        ? darkMode
-                          ? 'bg-zinc-800 border-2 border-white'
-                          : 'bg-white border-2 border-black'
-                        : darkMode
-                          ? 'bg-zinc-800 hover:bg-zinc-700 border border-gray-600'
-                          : 'bg-white hover:bg-gray-100 border border-gray-300'
-                      }`}
+                    className={`w-full text-left p-3 sm:p-4 rounded-lg transition-all flex justify-between items-center ${
+                      selectedAnswers[currentQuestion] === index
+                        ? 'bg-[#1a2436] border-2 border-[#eb9f18]'
+                        : 'bg-[#1a2436] hover:bg-gray-700 border border-gray-600'
+                    }`}
                     onClick={() => handleAnswerSelect(index)}
                   >
                     <span className="flex items-center gap-2 sm:gap-3 text-sm sm:text-base">
-                      <span className={`flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full text-xs sm:text-sm ${selectedAnswers[currentQuestion] === index
-                          ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                          : darkMode ? 'bg-zinc-700 text-gray-300' : 'bg-gray-200 text-gray-700'
-                        }`}>
+                      <span className={`flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full text-xs sm:text-sm ${
+                        selectedAnswers[currentQuestion] === index
+                          ? 'bg-[#eb9f18] text-black'
+                          : 'bg-gray-700 text-gray-300'
+                      }`}>
                         {String.fromCharCode(65 + index)}
                       </span>
                       {option}
                     </span>
                     {selectedAnswers[currentQuestion] === index && (
-                      <Check className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[#eb9f18]" />
                     )}
                   </div>
                 ))}
@@ -909,12 +1016,12 @@ function Quiz() {
             {/* Navigation buttons */}
             <div className="flex justify-between mt-6 sm:mt-8">
               <div
-                className={`hidden cursor-pointer sm:flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg items-center gap-1 sm:gap-2 text-sm ${currentQuestion === 0
-                    ? darkMode ? 'bg-zinc-800 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    : darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-gray-600' : 'bg-white hover:bg-gray-100 border border-gray-300'
-                  }`}
+                className={`hidden cursor-pointer sm:flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg items-center gap-1 sm:gap-2 text-sm ${
+                  currentQuestion === 0
+                    ? 'bg-[#1a2436] text-gray-500 cursor-not-allowed'
+                    : 'bg-[#1a2436] hover:bg-gray-700 border border-gray-600'
+                }`}
                 onClick={handlePrevious}
-                disabled={currentQuestion === 0}
               >
                 <ChevronLeft size={18} />
                 Previous
@@ -922,10 +1029,11 @@ function Quiz() {
 
               <div className="flex gap-2 w-full sm:w-auto justify-between sm:justify-end">
                 <div
-                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center gap-1 sm:gap-2 text-sm ${reviewedQuestions[currentQuestion]
-                      ? darkMode ? 'bg-zinc-800 border border-white' : 'bg-white border border-black'
-                      : darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-gray-600' : 'bg-white hover:bg-gray-100 border border-gray-300'
-                    }`}
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center gap-1 sm:gap-2 text-sm ${
+                    reviewedQuestions[currentQuestion]
+                      ? 'bg-[#1a2436] border border-white'
+                      : 'bg-[#1a2436] hover:bg-gray-700 border border-gray-600'
+                  }`}
                   onClick={handleReviewQuestion}
                 >
                   <BookOpen size={16} />
@@ -934,16 +1042,14 @@ function Quiz() {
 
                 {currentQuestion === questions.length - 1 ? (
                   <div
-                    className={`px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg font-medium text-sm ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-white' : 'bg-white hover:bg-gray-100 border border-black'
-                      }`}
+                    className="px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg font-medium text-sm bg-[#1a2436] hover:bg-gray-700 border border-white"
                     onClick={handleSubmitTest}
                   >
                     Submit Test
                   </div>
                 ) : (
                   <div
-                    className={`hidden sm:flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg items-center gap-1 sm:gap-2 text-sm ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-white' : 'bg-white hover:bg-gray-100 border border-black'
-                      }`}
+                    className="hidden sm:flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg items-center gap-1 sm:gap-2 text-sm bg-[#1a2436] hover:bg-gray-700 border border-white"
                     onClick={handleNext}
                   >
                     Next
@@ -955,23 +1061,21 @@ function Quiz() {
           </div>
 
           {/* Mobile bottom navigation */}
-          <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-zinc-900 p-3 flex justify-between items-center shadow-lg">
+          <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-[#111827] p-3 flex justify-between items-center shadow-lg">
             {currentQuestion === questions.length - 1 ? (
               <div
-                className={`w-full py-2 rounded-lg font-medium text-sm ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-white' : 'bg-white hover:bg-gray-100 border border-black'
-                  }`}
+                className="w-full py-2 rounded-lg text-center font-medium text-sm bg-[#1a2436] hover:bg-gray-700 border border-white"
                 onClick={handleSubmitTest}
               >
                 Submit Test
               </div>
             ) : (
               <>
-                <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <span className="text-xs text-gray-400">
                   {selectedAnswers.filter(a => a !== -1).length}/{questions.length} answered
                 </span>
                 <div
-                  className={`px-4 py-2 rounded-lg flex items-center gap-1 text-sm ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-white' : 'bg-white hover:bg-gray-100 border border-black'
-                    }`}
+                  className="px-4 py-2 rounded-lg flex items-center gap-1 text-sm bg-[#1a2436] hover:bg-gray-700 border border-white"
                   onClick={handleNext}
                 >
                   Next
