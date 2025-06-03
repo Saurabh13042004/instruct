@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title> Instruct </title>
+    <meta name="keywords" content="online education, e-learning, coaching, education, teaching, learning,Instruct, education, Quality learning, India, academic resources">
+    <meta name="description" content="Instruct - High-quality educational platform providing Quality resources for learners in India.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/icon (500 x 500 px).svg">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #000000 0%, #282828 50%, #0a0a0a 100%);
+            padding: 2rem;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .back-button {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: 0.3s;
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        .search-container {
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border-radius: 1rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                120deg,
+                transparent,
+                rgba(255, 255, 255, 0.1),
+                transparent
+            );
+            transition: 0.5s ease;
+        }
+
+        .card:hover::before {
+            left: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            cursor: pointer;
+        }
+
+        .icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover .icon {
+            transform: scale(1.1);
+        }
+
+        .title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #fff;
+            line-height: 1.4;
+        }
+
+        .card-content {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s ease-out;
+            background: linear-gradient(135deg, #000000 0%, #282828 50%, #0a0a0a 100%);
+            backdrop-filter: blur(10px);
+            width: 100%;
+        }
+
+        .card.active .card-content {
+            max-height: 500px;
+            transition: max-height 0.5s ease-in;
+        }
+
+        .nested-dropdown {
+            margin: 0.5rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .nested-dropdown:hover {
+            transform: translateX(10px);
+        }
+
+        .nested-header {
+            padding: 1rem;
+            cursor: pointer;
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .nested-header:hover {
+            background: rgba(255,255,255,0.2);
+            padding-left: 1.5rem;
+        }
+
+        .nested-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .nested-dropdown.active .nested-content {
+            max-height: 200px;
+            transition: max-height 0.4s ease-in;
+        }
+
+        .nested-item {
+            padding: 0.75rem 1rem;
+            margin: 0.25rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .nested-item:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateX(10px);
+        }
+
+        .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            transition: background 0.3s ease;
+        }
+
+        .nested-header:hover .badge {
+            background: rgba(255,255,255,0.3);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            .search-input {
+                max-width: 100%;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-button" onclick="goBack()">← Back</button>
+            <h1>Inorganic Chemistry</h1>
+        </div>
+
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Search chapters..." onkeyup="searchChapters(this.value)">
+        </div>
+
+        <div class="grid">
+            <!-- Cards will be dynamically generated here -->
+        </div>
+    </div>
+
+    <script>
+        const chapters = [
+            { title: "Chemical Bonding", emoji: "⚡" },
+            { title: "P-Block Elements", emoji: "🧪" },
+            { title: "Periodic Table & Periodicity", emoji: "📊" },
+            { title: "Hydrogen", emoji: "💧" },
+            { title: "S-Block Elements", emoji: "🔷" },
+            { title: "Coordination Compounds", emoji: "🔮" },
+            { title: "D and F-Block Elements", emoji: "⚛️" },
+            { title: "Metallurgy", emoji: "⚒️" },
+            { title: "Qualitative Analysis", emoji: "🔍" }
+        ];
+
+        function generateCards() {
+            const grid = document.querySelector('.grid');
+            grid.innerHTML = chapters.map((chapter, index) => `
+                <div class="card-wrapper">
+                    <div class="card" data-title="${chapter.title}">
+                        <div class="card-header" onclick="toggleCard(this)">
+                            <div class="icon">${chapter.emoji}</div>
+                            <h3 class="title">${chapter.title}</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="nested-dropdown">
+                                <div class="nested-header" onclick="toggleNested(this, event)">
+                                    Videos <span class="badge">3</span>
+                                </div>
+                                <div class="nested-content">
+                                    <div class="nested-item">Video 1</div>
+                                    <div class="nested-item">Video 2</div>
+                                    <div class="nested-item">Video 3</div>
+                                </div>
+                            </div>
+                            <div class="nested-dropdown">
+                                <div class="nested-header" onclick="toggleNested(this, event)">
+                                    Tests <span class="badge">2</span>
+                                </div>
+                                <div class="nested-content">
+                                    <div class="nested-item">Test 1</div>
+                                    <div class="nested-item">Test 2</div>
+                                </div>
+                            </div>
+                            <div class="nested-dropdown">
+                                <div class="nested-header" onclick="toggleNested(this, event)">
+                                    Audio Books <span class="badge">1</span>
+                                </div>
+                                <div class="nested-content">
+                                    <div class="nested-item">Audio Book 1</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function toggleCard(header) {
+            const currentCard = header.closest('.card');
+            // Close all other cards
+            document.querySelectorAll('.card').forEach(card => {
+                if (card !== currentCard) {
+                    card.classList.remove('active');
+                    // Also close nested dropdowns in other cards
+                    card.querySelectorAll('.nested-dropdown').forEach(dropdown => {
+                        dropdown.classList.remove('active');
+                    });
+                }
+            });
+            currentCard.classList.toggle('active');
+        }
+
+        function toggleNested(header, event) {
+            event.stopPropagation();
+            const nestedDropdown = header.parentElement;
+            const card = header.closest('.card');
+            
+            card.querySelectorAll('.nested-dropdown').forEach(dropdown => {
+                if (dropdown !== nestedDropdown) {
+                    dropdown.classList.remove('active');
+                }
+            });
+            
+            nestedDropdown.classList.toggle('active');
+        }
+
+        function searchChapters(query) {
+            query = query.toLowerCase();
+            document.querySelectorAll('.card-wrapper').forEach(wrapper => {
+                const card = wrapper.querySelector('.card');
+                const title = card.getAttribute('data-title').toLowerCase();
+                wrapper.style.display = title.includes(query) ? 'block' : 'none';
+            });
+        }
+
+        // Initialize cards
+        generateCards();
+    </script>
+</body>
+</html>

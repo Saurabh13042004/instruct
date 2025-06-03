@@ -1,0 +1,40 @@
+/* Prevent text selection */
+* {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+
+  .bg-black::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .bg-black::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+  
+  .bg-black::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 4px;
+  }
+  
+  .bg-black::-webkit-scrollbar-thumb:hover {
+    background: #444444;
+  }
+  
+  /* Hover effect for question buttons */
+  button:hover {
+    transform: translateY(-1px);
+    transition: transform 0.2s ease;
+  }
+  
+
+  img {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+  }

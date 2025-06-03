@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title> Instruct </title>
+    <meta name="keywords" content="online education, e-learning, coaching, education, teaching, learning,Instruct, education, Quality learning, India, academic resources">
+    <meta name="description" content="Instruct - High-quality educational platform providing Quality resources for learners in India.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/icon (500 x 500 px).svg">
+    <style>
+        body {
+            margin: 20px;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            background-color: #1E1E1E;
+            color: #FFFFFF;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 30px;
+            color: #AAAAAA;
+            font-size: 1.1rem;
+        }
+
+        .progress-bar {
+            width: 80%;
+            margin: 0 auto 20px;
+            background-color: #333;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar span {
+            display: block;
+            height: 20px;
+            background: linear-gradient(45deg, #00aaff, #0055ff);
+            width: 85%; /* Adjust width to show progress */
+            transition: width 0.5s ease;
+        }
+
+        .email-input {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        input[type="email"] {
+            padding: 10px;
+            font-size: 1rem;
+            width: 300px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background-color: #222;
+            color: #fff;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            background-color: #0055ff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #0033cc;
+        }
+
+        .illustration {
+            margin-top: 20px;
+        }
+
+        .illustration img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .wave {
+            position: absolute;
+            width: 100%;
+            height: 150px;
+            left: 0;
+            z-index: 0;
+        }
+
+        .wave1 {
+            bottom: 100px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+            transform: rotate(2deg);
+            clip-path: polygon(0 50%, 100% 0, 100% 100%, 0 100%);
+        }
+
+        .wave2 {
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+            transform: rotate(-2deg);
+            clip-path: polygon(0 60%, 100% 20%, 100% 100%, 0 100%);
+        }
+
+        .fade-in-out {
+            opacity: 1;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .fade-in-out.hide {
+            opacity: 0;
+        }
+
+
+    </style>
+ <script>
+           function handleNotify() {
+            const button = document.querySelector('button');
+            const message = document.createElement('p');
+            const container = document.querySelector('.container');
+
+            // Hide button and input
+            button.disabled = true;
+            button.classList.add('fade-in-out', 'hide');
+            input.classList.add('fade-in-out', 'hide');
+
+            // Create "Sure" text and fade in
+            message.textContent = 'Sure!';
+            message.className = 'fade-in-out hide';
+            container.appendChild(message);
+
+            setTimeout(() => {
+                message.classList.remove('hide'); // Fade in "Sure!"
+                setTimeout(() => {
+                    window.history.back(); // Go back to the previous page
+                }, 2000);
+            }, 500); // Small delay to ensure fade-out happens smoothly
+        }
+
+</script>
+
+</head>
+<body>
+    <div class="wave wave1"></div>
+    <div class="wave wave2"></div>
+    <div class="container">
+        <h1>We are building something awesome!</h1>
+        <p>Hey you! Instruct is coming. We are doing our best to launch and we will be back soon.</p>
+
+        <div class="progress-bar">
+            <span></span>
+        </div>
+        <p>Launch In progress: <strong>85%</strong></p>
+
+        <div class="email-input">
+        <a href="index.html#courses"> <button onclick="handleNotify()">Begin here, the rest is coming!</button></a>
+        </div>
+
+        <div class="illustration">
+            <img src="assets/img/course/coming soon.svg" alt="Illustration" />
+        </div>
+    </div>
+</body>
+</html>
