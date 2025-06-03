@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import API from "../../api";
-import { PlayCircle, HelpCircle, FileText, Music } from "lucide-react";
+import { PlayCircle, HelpCircle, FileText, Music, ArrowLeft } from "lucide-react";
 import Modal from "react-modal";
 import * as pdfjsLib from "pdfjs-dist";
 import AudioPlayer from "react-h5-audio-player";
@@ -494,13 +494,13 @@ const CourseContentDetail = () => {
     <div className="min-h-screen w-[98vw] pt-150 text-white p-8">
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
-        <button
+        <div
           onClick={() => navigate(-1)}
           className="bg-opacity-10 hover:bg-opacity-20 bg-dark text-white px-4 py-2 rounded-lg 
                     transition-all duration-300 flex items-center gap-2 hover:translate-x-[-4px]"
         >
-          ← Back
-        </button>
+          <ArrowLeft size={18} /> Back
+        </div>
         <h1 className="text-4xl font-bold text-white text-shadow">
           {subject.subjectName}
         </h1>
@@ -668,7 +668,7 @@ const CourseContentDetail = () => {
                       ) : resourceError.quiz ? (
                         <span className="text-red-400 text-sm">Not Found</span>
                       ) : (
-                        <button 
+                        <div 
                           className="px-2 py-1 text-sm bg-white/20 rounded-full hover:bg-white/30 transition-colors"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -676,7 +676,7 @@ const CourseContentDetail = () => {
                           }}
                         >
                           Start
-                        </button>
+                        </div>
                       )}
                     </div>
                   </div>

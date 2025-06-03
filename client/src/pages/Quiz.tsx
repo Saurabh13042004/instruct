@@ -533,12 +533,12 @@ useEffect(() => {
             </div>
 
             <div className="mt-6 sm:mt-8 flex justify-center">
-              <button
+              <div
                 onClick={handleStartTest}
-                className={`px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-medium text-white text-sm sm:text-base ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-black hover:bg-gray-800'} transition-colors`}
+                className={`px-6 sm:px-8 cursor-pointer py-2.5 sm:py-3 rounded-lg font-medium text-white text-sm sm:text-base ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-black hover:bg-gray-800'} transition-colors`}
               >
                 I Understand, Start Test
-              </button>
+              </div>
             </div>
           </div>
 
@@ -568,13 +568,13 @@ useEffect(() => {
               style={{ maxWidth: "100%" }}
             />
           </div>
-          <button
+          <div
             onClick={handleBack}
             className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-gray-200 hover:bg-gray-100'}`}
           >
             <ChevronLeft size={18} />
             Back
-          </button>
+          </div>
         </header>
 
         <main className="max-w-4xl mx-auto my-4 sm:my-8 px-3 sm:px-4">
@@ -583,14 +583,14 @@ useEffect(() => {
               <h2 className="text-xl sm:text-2xl font-bold">
                 Your test result are out
               </h2>
-              <button
+              <div
                 onClick={handleExitTest}
                 className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-gray-200 hover:bg-gray-100'
                   }`}
               >
                 <Home size={18} />
                 Exit to Home
-              </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -774,7 +774,7 @@ useEffect(() => {
 
             <div className="grid grid-cols-5 sm:grid-cols-5 gap-1 sm:gap-2">
               {questions.map((_, index) => (
-                <button
+                <div
                   key={index}
                   onClick={() => jumpToQuestion(index)}
                   className={`
@@ -792,7 +792,7 @@ useEffect(() => {
                   {reviewedQuestions[index] && (
                     <span className="absolute top-0 right-0 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white"></span>
                   )}
-                </button>
+                </div>
               ))}
             </div>
 
@@ -811,13 +811,13 @@ useEffect(() => {
               </div>
             </div>
 
-            <button
+            <div
               onClick={handleSubmitTest}
-              className={`w-full mt-4 sm:mt-6 py-2 rounded-lg font-medium text-xs sm:text-sm ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-white' : 'bg-white hover:bg-gray-100 border border-black'
+              className={`w-full text-center mt-4 sm:mt-6 py-2 rounded-lg font-medium text-xs sm:text-sm ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-white' : 'bg-white hover:bg-gray-100 border border-black'
                 }`}
             >
               Submit Test
-            </button>
+            </div>
           </div>
         </aside>
 
@@ -911,7 +911,7 @@ useEffect(() => {
 
               <div className="space-y-2 sm:space-y-3 mt-4 sm:mt-6">
                 {questions[currentQuestion].options.map((option, index) => (
-                  <button
+                  <div
                     key={index}
                     className={`w-full text-left p-3 sm:p-4 rounded-lg transition-all flex justify-between items-center ${selectedAnswers[currentQuestion] === index
                         ? darkMode
@@ -935,15 +935,15 @@ useEffect(() => {
                     {selectedAnswers[currentQuestion] === index && (
                       <Check className="w-4 h-4 sm:w-5 sm:h-5" />
                     )}
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>
 
             {/* Navigation buttons */}
             <div className="flex justify-between mt-6 sm:mt-8">
-              <button
-                className={`hidden sm:flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg items-center gap-1 sm:gap-2 text-sm ${currentQuestion === 0
+              <div
+                className={`hidden cursor-pointer sm:flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg items-center gap-1 sm:gap-2 text-sm ${currentQuestion === 0
                     ? darkMode ? 'bg-zinc-800 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     : darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-gray-600' : 'bg-white hover:bg-gray-100 border border-gray-300'
                   }`}
@@ -952,10 +952,10 @@ useEffect(() => {
               >
                 <ChevronLeft size={18} />
                 Previous
-              </button>
+              </div>
 
               <div className="flex gap-2 w-full sm:w-auto justify-between sm:justify-end">
-                <button
+                <div
                   className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center gap-1 sm:gap-2 text-sm ${reviewedQuestions[currentQuestion]
                       ? darkMode ? 'bg-zinc-800 border border-white' : 'bg-white border border-black'
                       : darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-gray-600' : 'bg-white hover:bg-gray-100 border border-gray-300'
@@ -964,25 +964,25 @@ useEffect(() => {
                 >
                   <BookOpen size={16} />
                   <span className="hidden sm:inline">{reviewedQuestions[currentQuestion] ? 'Remove from review' : 'Mark for review'}</span>
-                </button>
+                </div>
 
                 {currentQuestion === questions.length - 1 ? (
-                  <button
+                  <div
                     className={`px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg font-medium text-sm ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-white' : 'bg-white hover:bg-gray-100 border border-black'
                       }`}
                     onClick={handleSubmitTest}
                   >
                     Submit Test
-                  </button>
+                  </div>
                 ) : (
-                  <button
+                  <div
                     className={`hidden sm:flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg items-center gap-1 sm:gap-2 text-sm ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-white' : 'bg-white hover:bg-gray-100 border border-black'
                       }`}
                     onClick={handleNext}
                   >
                     Next
                     <ChevronRight size={18} />
-                  </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -991,26 +991,26 @@ useEffect(() => {
           {/* Mobile bottom navigation */}
           <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-zinc-900 p-3 flex justify-between items-center shadow-lg">
             {currentQuestion === questions.length - 1 ? (
-              <button
+              <div
                 className={`w-full py-2 rounded-lg font-medium text-sm ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-white' : 'bg-white hover:bg-gray-100 border border-black'
                   }`}
                 onClick={handleSubmitTest}
               >
                 Submit Test
-              </button>
+              </div>
             ) : (
               <>
                 <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                   {selectedAnswers.filter(a => a !== -1).length}/{questions.length} answered
                 </span>
-                <button
+                <div
                   className={`px-4 py-2 rounded-lg flex items-center gap-1 text-sm ${darkMode ? 'bg-zinc-800 hover:bg-zinc-700 border border-white' : 'bg-white hover:bg-gray-100 border border-black'
                     }`}
                   onClick={handleNext}
                 >
                   Next
                   <ChevronRight size={16} />
-                </button>
+                </div>
               </>
             )}
           </div>
