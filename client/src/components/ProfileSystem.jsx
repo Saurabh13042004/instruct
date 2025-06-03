@@ -1,11 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, X, Plus, Eye, EyeOff, AlertCircle, Check, Trash2, ArrowLeft } from 'lucide-react';
+import { User, X, Plus, Eye, EyeOff, AlertCircle, Check, Trash2, ArrowLeft, Pencil, Calendar } from 'lucide-react';
 import API from '../../api';
+
+// Add import for date picker (you'll need to install this)
+// npm install react-datepicker
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 
 const ProfileSystem = ({ onClose }) => {
   // Core state
   const [activeModal, setActiveModal] = useState(null);
-  const [modalStep, setModalStep] = useState(1); // Track steps within a modal flow
+  const [modalStep, setModalStep] = useState(1);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [alert, setAlert] = useState({ show: false, message: '', type: '' });
   const [userDetails, setUserDetails] = useState({
@@ -30,11 +35,16 @@ const ProfileSystem = ({ onClose }) => {
   });
   const [showPassword, setShowPassword] = useState({ current: false, new: false, confirm: false });
 
+  // Add new state for DOB and DatePicker modal
+  const [dateOfBirth, setDateOfBirth] = useState(null);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+
   // Fetch user profile on component mount
   useEffect(() => {
     fetchUserProfile();
   }, []);
 
+  // Fetch user profile function update
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
@@ -58,6 +68,10 @@ const ProfileSystem = ({ onClose }) => {
           email: user.email,
           phoneNumber: user.phoneNumber
         });
+        // Set date of birth if it exists in the response
+        if (user.dateOfBirth) {
+          setDateOfBirth(new Date(user.dateOfBirth));
+        }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -79,6 +93,13 @@ const ProfileSystem = ({ onClose }) => {
   const showAlert = (message, type = 'error') => {
     setAlert({ show: true, message, type });
     setTimeout(() => setAlert({ show: false, message: '', type: '' }), 3000);
+  };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    const firstInitial = userDetails.firstName ? userDetails.firstName[0] : '';
+    const lastInitial = userDetails.lastName ? userDetails.lastName[0] : '';
+    return (firstInitial + lastInitial).toUpperCase();
   };
 
   // OTP handlers
@@ -104,26 +125,28 @@ const ProfileSystem = ({ onClose }) => {
 
   // New enhanced modal component with step handling
   const EnhancedModal = ({ title, children, onClose, showBackdiv = false, onBack }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-900 rounded-lg p-6 max-w-md w-full border border-gray-700 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4 sticky top-0 bg-gray-900 py-2">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in p-4 overflow-y-auto">
+      <div className="bg-gradient-to-b from-[#091F3B] to-black rounded-lg p-6 max-w-md w-full border border-gray-800 max-h-[90vh] overflow-y-auto animate-scale-in my-8">
+        <div className="flex justify-between items-center mb-4 sticky top-0 bg-gradient-to-b from-[#091F3B] to-[#091F3B] py-2 z-10">
           <div className="flex items-center">
             {showBackdiv && (
               <div 
                 onClick={onBack} 
-                className="mr-2 text-gray-400 hover:text-gray-300"
+                className="mr-2 text-gray-400 hover:text-gray-300 cursor-pointer"
                 aria-label="Go back"
               >
                 <ArrowLeft size={20} />
               </div>
             )}
-            <h3 className="text-lg font-semibold text-gray-100">{title}</h3>
+            {/* <h3 className="text-lg font-semibold text-white">{title}</h3> */}
           </div>
-          <div onClick={onClose} className="text-gray-400 hover:text-gray-300">
+          <div onClick={onClose} className="text-gray-400 hover:text-white cursor-pointer">
             <X size={20} />
           </div>
         </div>
-        {children}
+        <div className="overflow-y-auto">
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -259,6 +282,105 @@ const ProfileSystem = ({ onClose }) => {
     }
   };
 
+  // Add function to handle date selection
+  const handleDateSelect = (date) => {
+    setDateOfBirth(date);
+    setDatePickerOpen(false); // Close the modal after selection
+    updateDateOfBirth(date);
+  };
+
+  // Add function to update date of birth on the server
+  const updateDateOfBirth = async (date) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showAlert('Not authenticated', 'error');
+        return;
+      }
+      
+      const response = await API.put('/user/profile', {
+        dateOfBirth: date
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.success) {
+        showAlert('Date of birth updated successfully', 'success');
+      }
+    } catch (error) {
+      console.error('Error updating date of birth:', error);
+      showAlert('Failed to update date of birth', 'error');
+    }
+  };
+
+  // Format date function
+  const formatDate = (date) => {
+    if (!date) return 'Not set';
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  // New Date Picker Modal component
+  const DatePickerModal = ({ isOpen, onClose, onSelect, initialDate }) => {
+    const [selectedDate, setSelectedDate] = useState(initialDate || null);
+    
+    if (!isOpen) return null;
+    
+    const handleSave = () => {
+      if (selectedDate) {
+        onSelect(selectedDate);
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in p-4 overflow-y-auto">
+        <div className="bg-gradient-to-b from-[#091F3B] to-black rounded-lg p-6 max-w-md w-full border border-gray-800 max-h-[90vh] overflow-y-auto animate-scale-in my-8">
+          <div className="flex justify-between items-center mb-4 sticky top-0 bg-gradient-to-b from-[#091F3B] to-[#091F3B] py-2 z-10">
+            <h3 className="text-lg font-semibold text-white">Select Date of Birth</h3>
+            <div onClick={onClose} className="text-gray-400 hover:text-white cursor-pointer">
+              <X size={20} />
+            </div>
+          </div>
+          
+          <div className="flex flex-col space-y-6">
+            <div className="flex justify-center">
+              <DatePicker
+                selected={selectedDate}
+                onChange={(date) => setSelectedDate(date)}
+                inline
+                showYearDropdown
+                showMonthDropdown
+                dropdownMode="select"
+                maxDate={new Date()}
+                yearDropdownItemNumber={100}
+                className="bg-[#091F3B] text-white border border-gray-700 rounded-lg"
+              />
+            </div>
+
+            <div className="flex justify-between pt-4">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-gray-300 border border-gray-700 rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={!selectedDate}
+                className="bg-[#b16901] text-white px-5 py-2 rounded-lg hover:bg-[#c27811] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Reset the modal state
   const resetModalState = () => {
     setActiveModal(null);
@@ -269,134 +391,159 @@ const ProfileSystem = ({ onClose }) => {
 
   if (loading) {
     return (
-      <div className="bg-gray-900 p-8 rounded-lg flex justify-center items-center">
-        <div className="text-gray-100">Loading profile...</div>
+      <div className="bg-gradient-to-b from-[#091F3B] to-black p-8 rounded-lg flex justify-center items-center min-h-[60vh]">
+        <div className="text-white">Loading profile...</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-900 p-8 rounded-lg">
+    <div className="bg-gradient-to-b from-[#091F3B] to-black rounded-lg border border-gray-800 shadow-xl overflow-y-auto max-h-[90vh]">
       {alert.show && (
-        <div className="fixed inset-x-0 top-4 flex justify-center z-50">
-          <div className="bg-gray-900 rounded-lg p-4 border border-gray-700 flex items-center space-x-2">
+        <div className="fixed inset-x-0 top-4 flex justify-center z-50 animate-fade-in">
+          <div className="bg-gradient-to-b from-[#091F3B] to-black rounded-lg p-4 border border-gray-700 flex items-center space-x-2 shadow-lg">
             {alert.type === 'success' ? (
               <Check className="w-5 h-5 text-green-500" />
             ) : (
               <AlertCircle className="w-5 h-5 text-red-500" />
             )}
-            <p className="text-gray-100">{alert.message}</p>
+            <p className="text-white">{alert.message}</p>
           </div>
         </div>
       )}
 
       <div className="max-w-2xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-xl font-semibold text-gray-100">Profile details</h1>
+        <div className="relative p-6 pb-4 border-b border-gray-800">
           {onClose && (
-            <div onClick={onClose} className="text-gray-400 hover:text-gray-300">
-              <X className="w-5 h-5" />
+            <div 
+              onClick={onClose} 
+              className="absolute top-4 right-4 text-gray-400 hover:text-white cursor-pointer transition-colors"
+            >
+              <X size={20} />
             </div>
           )}
-        </div>
-
-        <div className="space-y-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center">
-                <User className="w-8 h-8 text-gray-400" />
-              </div>
-              {isEditingProfile ? (
-                <div className="flex space-x-2">
+          <h2 className="font-bold text-white text-center mb-6">Profile details</h2>
+          
+          {/* User Avatar & Name Section */}
+          <div className="flex py-3 flex-col items-center">
+            <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center border-2 border-[#b16901] mb-4">
+              <span className="text-2xl font-bold text-white">{getUserInitials()}</span>
+            </div>
+            
+            {isEditingProfile ? (
+              <div className="w-full max-w-sm space-y-4 mb-4">
+                <div className="flex gap-4">
                   <input
                     type="text"
                     value={userDetails.firstName}
                     onChange={(e) => setUserDetails({ ...userDetails, firstName: e.target.value })}
-                    className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1 text-gray-100"
+                    className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-[#b16901]/50 focus:border-[#b16901]"
+                    placeholder="First Name"
                   />
                   <input
                     type="text"
                     value={userDetails.lastName}
                     onChange={(e) => setUserDetails({ ...userDetails, lastName: e.target.value })}
-                    className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1 text-gray-100"
+                    className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-[#b16901]/50 focus:border-[#b16901]"
+                    placeholder="Last Name"
                   />
                 </div>
-              ) : (
-                <div className="text-xl text-gray-100">
-                  {userDetails.firstName} {userDetails.lastName}
+                <div className="flex justify-end gap-2">
+                  <div
+                    onClick={() => setIsEditingProfile(false)}
+                    className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </div>
+                  <div
+                    onClick={handleUpdateProfile}
+                    disabled={!userDetails.firstName.trim() || !userDetails.lastName.trim()}
+                    className="bg-[#b16901] text-white px-5 py-2 rounded-lg hover:bg-[#c27811] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Save
+                  </div>
                 </div>
-              )}
-            </div>
-            <div
-              onClick={() => {
-                if (isEditingProfile) {
-                  handleUpdateProfile();
-                } else {
-                  setIsEditingProfile(true);
-                }
-              }}
-              className="text-[#b16901] hover:text-[#c27811]"
-            >
-              {isEditingProfile ? 'Save' : 'Update profile'}
-            </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 mb-4">
+                <h3 className="text-2xl font-semibold text-white">
+                  {userDetails.firstName} {userDetails.lastName}
+                </h3>
+                <div
+                  onClick={() => setIsEditingProfile(true)}
+                  className="flex items-center gap-1 bg-[#b16901] text-white px-3 py-1 rounded-lg text-sm hover:bg-[#c27811] transition-colors ml-2"
+                >
+                  <Pencil size={14} />
+                  Update Name
+                </div>
+              </div>
+            )}
           </div>
-
-          {/* Email section */}
-          <div className="space-y-2">
-            <h3 className="font-medium text-gray-100">Email address</h3>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-gray-300">{userDetails.email}</span>
-              <div className="flex items-center space-x-2">
-                <span className="px-2 py-1 bg-gray-800 text-gray-300 text-sm rounded">Primary</span>
+        </div>
+        
+        <div className="p-6 space-y-8">
+          {/* Date of Birth Section - Updated with onClick handler */}
+          <section className="animate-slide-in-right" style={{ animationDelay: '0.1s' }}>
+            <h3 className="text-xl font-semibold text-[#b16901] mb-2">Date of Birth</h3>
+            <div className="flex items-center justify-between">
+              <p className="text-white">{formatDate(dateOfBirth)}</p>
+              <div 
+                onClick={() => setDatePickerOpen(true)}
+                className="flex items-center gap-1 border border-gray-700 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-800 transition-colors"
+              >
+                <Calendar size={14} />
+                Update
               </div>
             </div>
+          </section>
+
+          {/* Email Section */}
+          <section className="animate-slide-in-right" style={{ animationDelay: '0.2s' }}>
+            <h3 className="text-xl font-semibold text-[#b16901] mb-2">Email address</h3>
+            <p className="text-white mb-3">{userDetails.email}</p>
             <div
               onClick={() => {
                 setActiveModal('update-contact');
                 setCurrentModalType('email');
                 setModalStep(1);
               }}
-              className="flex items-center space-x-1 text-[#b16901] hover:text-[#c27811]"
+              className="flex items-center gap-1 border border-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
             >
-              <Plus className="w-4 h-4" />
-              <span>Update email address</span>
+              <Plus size={16} />
+              Update email address
             </div>
-          </div>
-
-          {/* Phone section */}
-          <div className="space-y-2">
-            <h3 className="font-medium text-gray-100">Phone number</h3>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-gray-300">{userDetails.phoneNumber}</span>
-              <div className="flex items-center space-x-2">
-                <span className="px-2 py-1 bg-gray-800 text-gray-300 text-sm rounded">Primary</span>
-              </div>
-            </div>
+          </section>
+          
+          {/* Phone Section */}
+          <section className="animate-slide-in-right" style={{ animationDelay: '0.3s' }}>
+            <h3 className="text-xl font-semibold text-[#b16901] mb-2">Phone number</h3>
+            <p className="text-white mb-3">{userDetails.phoneNumber}</p>
             <div
               onClick={() => {
                 setActiveModal('update-contact');
                 setCurrentModalType('phoneNumber');
                 setModalStep(1);
               }}
-              className="flex items-center space-x-1 text-[#b16901] hover:text-[#c27811]"
+              className="flex items-center gap-1 border border-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
             >
-              <Plus className="w-4 h-4" />
-              <span>Update phone number</span>
+              <Plus size={16} />
+              Update phone number
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium text-gray-100">Password</h3>
+          </section>
+          
+          {/* Password Section */}
+          <section className="animate-slide-in-right" style={{ animationDelay: '0.4s' }}>
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-xl font-semibold text-[#b16901]">Password</h3>
               <div
                 onClick={() => setShowPasswordModal(true)}
-                className="text-[#b16901] hover:text-[#c27811]"
+                className="bg-[#b16901] text-white px-4 py-2 rounded-lg hover:bg-[#c27811] transition-colors"
               >
                 Update password
               </div>
             </div>
-            <div className="text-gray-600">••••••••••</div>
-          </div>
+            <p className="text-white">••••••••••</p>
+          </section>
         </div>
 
         {/* Enhanced Contact Update Modal with Steps */}
@@ -418,7 +565,7 @@ const ProfileSystem = ({ onClose }) => {
               {/* Step 1: Enter new contact info */}
               {modalStep === 1 && (
                 <div className="space-y-4 transition-opacity duration-300">
-                  <p className="text-gray-400">
+                  <p className="text-gray-300">
                     Enter your new {currentModalType === 'email' ? 'email address' : 'phone number'} below. 
                     You'll need to verify it before it can be updated.
                   </p>
@@ -426,7 +573,7 @@ const ProfileSystem = ({ onClose }) => {
                     type={currentModalType === 'email' ? 'email' : 'tel'}
                     value={newInput}
                     onChange={(e) => setNewInput(e.target.value)}
-                    className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:ring-2 focus:ring-[#b16901]/50 focus:border-[#b16901]"
+                    className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-[#b16901]/50 focus:border-[#b16901]"
                     placeholder={`Enter new ${currentModalType === 'email' ? 'email address' : 'phone number'}`}
                   />
                   <div className="flex justify-end space-x-3 pt-2">
@@ -450,9 +597,9 @@ const ProfileSystem = ({ onClose }) => {
               {/* Step 2: Verification */}
               {modalStep === 2 && (
                 <div className="space-y-5 transition-opacity duration-300">
-                  <p className="text-gray-400 mb-1">
+                  <p className="text-gray-300 mb-1">
                     Enter the verification code sent to{' '}
-                    <span className="text-gray-200 font-medium">{newInput}</span>
+                    <span className="text-white font-medium">{newInput}</span>
                   </p>
                   
                   <div className="flex justify-between gap-2 my-4">
@@ -467,7 +614,7 @@ const ProfileSystem = ({ onClose }) => {
                         value={digit}
                         onChange={(e) => handleOtpChange(index, e.target.value)}
                         onKeyDown={(e) => handleKeyDown(index, e)}
-                        className="w-12 h-14 text-center text-lg bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:ring-2 focus:ring-[#b16901]/50 focus:border-[#b16901]"
+                        className="w-12 h-14 text-center text-lg bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-[#b16901]/50 focus:border-[#b16901]"
                       />
                     ))}
                   </div>
@@ -532,15 +679,15 @@ const ProfileSystem = ({ onClose }) => {
                       type={showPassword[key] ? 'text' : 'password'}
                       value={passwordData[key]}
                       onChange={(e) => setPasswordData({ ...passwordData, [key]: e.target.value })}
-                      className="w-full p-3 pr-10 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:ring-2 focus:ring-[#b16901]/50 focus:border-[#b16901]"
+                      className="w-full p-3 pr-10 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-[#b16901]/50 focus:border-[#b16901]"
                     />
-                    <div
-                      type="div"
+                    <button
+                      type="button"
                       onClick={() => setShowPassword({ ...showPassword, [key]: !showPassword[key] })}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
                     >
                       {showPassword[key] ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </div>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -564,7 +711,7 @@ const ProfileSystem = ({ onClose }) => {
               </div>
               
               <div className="flex justify-end space-x-3 pt-4">
-                <div
+                <button
                   onClick={() => {
                     setShowPasswordModal(false);
                     setPasswordData({ current: '', new: '', confirm: '', signOutAll: false });
@@ -572,18 +719,26 @@ const ProfileSystem = ({ onClose }) => {
                   className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
                 >
                   Cancel
-                </div>
-                <div
+                </button>
+                <button
                   onClick={handlePasswordUpdate}
                   disabled={!passwordData.current || !passwordData.new || !passwordData.confirm}
                   className="bg-[#b16901] text-white px-5 py-2 rounded-lg hover:bg-[#c27811] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Update Password
-                </div>
+                </button>
               </div>
             </div>
           </EnhancedModal>
         )}
+
+        {/* Date Picker Modal */}
+        <DatePickerModal
+          isOpen={datePickerOpen}
+          onClose={() => setDatePickerOpen(false)}
+          onSelect={handleDateSelect}
+          initialDate={dateOfBirth}
+        />
       </div>
     </div>
   );
