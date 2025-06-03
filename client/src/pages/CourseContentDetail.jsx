@@ -267,6 +267,7 @@ const CourseContentDetail = () => {
   const { courseId, subjectId } = useParams();
   const navigate = useNavigate();
   const canvasRef = useRef(null);
+  const pdfContentRef = useRef(null);
   const [subject, setSubject] = useState(null);
   const [activeChapters, setActiveChapters] = useState({});
   const [loading, setLoading] = useState(true);
@@ -278,107 +279,153 @@ const CourseContentDetail = () => {
   const [quizData, setQuizData] = useState(null);
 
   const [isRendering, setIsRendering] = useState(false);
-  const [audioUrl, setAudioUrl] = useState(null);
+  const [audioPlayerUrl, setAudioPlayerUrl] = useState(null);
   const [showAudioPlayer, setShowAudioPlayer] = useState(false);
   // Add searchTerm state at the top with other state declarations
   const [searchTerm, setSearchTerm] = useState("");
 
-  const [loadingResource, setLoadingResource] = useState({
-    pdf: false,
-    audio: false,
-    video: false,
-    quiz: false
-  });
-  const [resourceError, setResourceError] = useState({
-    pdf: null,
-    audio: null,
-    video: null,
-    quiz: null
-  });
+  // Replace the single loadingResource and resourceError states with chapter-specific states
+  const [chapterStates, setChapterStates] = useState({});
+
+  // Helper function to initialize chapter state
+  const initializeChapterState = (chapterId) => {
+    setChapterStates(prev => ({
+      ...prev,
+      [chapterId]: {
+        loading: {
+          pdf: false,
+          audio: false,
+          video: false,
+          quiz: false
+        },
+        error: {
+          pdf: null,
+          audio: null,
+          video: null,
+          quiz: null
+        }
+      }
+    }));
+  };
+
+  // Helper function to update chapter state
+  const updateChapterState = (chapterId, resourceType, updates) => {
+    setChapterStates(prev => ({
+      ...prev,
+      [chapterId]: {
+        ...prev[chapterId],
+        [resourceType]: {
+          ...prev[chapterId]?.[resourceType],
+          ...updates
+        }
+      }
+    }));
+  };
 
   // Add this filter function before the return statement
   const filteredChapters = subject?.chapters.filter((chapter) =>
     chapter.chapterName.toLowerCase().includes(searchTerm.toLowerCase())
   );
   const handleQuizClick = async (chapterId) => {
-    if (!chapterId) {
-      setResourceError(prev => ({ ...prev, quiz: "Quiz not found" }));
-      return;
-    }
-
     try {
-      setLoadingResource(prev => ({ ...prev, quiz: true }));
-      setResourceError(prev => ({ ...prev, quiz: null }));
+      if (!chapterStates[chapterId]) {
+        initializeChapterState(chapterId);
+      }
+
+      updateChapterState(chapterId, 'loading', { quiz: true });
+      updateChapterState(chapterId, 'error', { quiz: null });
 
       const token = localStorage.getItem("token");
-      const response = await API.get(`/quiz/chapter/${chapterId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const response = await API.get(`/courses/verify-access/${courseId}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (response.data.success && response.data.quizzes.length > 0) {
-        const quiz = response.data.quizzes[0];
-        // Scroll to top before navigation
-        window.scrollTo(0, 0);
-        navigate(`/quiz/${chapterId}`, {
-          state: {
-            quiz,
-            courseId,
-            subjectId,
-            chapterId
-          }
+      if (response.data.hasAccess) {
+        // Fetch quiz data before navigation
+        const quizResponse = await API.get(`/quiz/chapter/${chapterId}`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
+
+        if (quizResponse.data.success && quizResponse.data.quizzes.length > 0) {
+          const quizData = quizResponse.data.quizzes[0];
+          navigate(`/quiz/${chapterId}`, { state: { quiz: quizData } });
+          console.log("Quiz accessed successfully");
+        } else {
+          toast.error("No quiz found for this chapter");
+          updateChapterState(chapterId, 'error', { quiz: 'No quiz found' });
+        }
       } else {
-        setResourceError(prev => ({ ...prev, quiz: "No quiz available for this chapter" }));
+        toast.error("You don't have access to this quiz");
+        updateChapterState(chapterId, 'error', { quiz: 'Access denied' });
       }
     } catch (error) {
-      console.error("Error fetching quiz:", error);
-      setResourceError(prev => ({ ...prev, quiz: "Failed to load quiz" }));
+      console.error("Error accessing quiz:", error);
+      updateChapterState(chapterId, 'error', { quiz: error.message });
+      toast.error("Failed to access quiz. Please try again.");
     } finally {
-      setLoadingResource(prev => ({ ...prev, quiz: false }));
+      updateChapterState(chapterId, 'loading', { quiz: false });
     }
   };
 
 
   // Replace the existing Chapters Grid section with this:
-  const handleOpenProtectedResource = async (resourceUrl, type) => {
+  const handleOpenProtectedResource = async (resourceUrl, type, chapterId) => {
     if (!resourceUrl) {
-      setResourceError(prev => ({ ...prev, [type]: "Resource not found" }));
+      updateChapterState(chapterId, 'error', { [type]: 'Resource not found' });
       return;
     }
 
     try {
-      setLoadingResource(prev => ({ ...prev, [type]: true }));
-      setResourceError(prev => ({ ...prev, [type]: null }));
+      // Initialize chapter state if not exists
+      if (!chapterStates[chapterId]) {
+        initializeChapterState(chapterId);
+      }
+
+      // Set loading state for the specific resource
+      updateChapterState(chapterId, 'loading', { [type]: true });
+      updateChapterState(chapterId, 'error', { [type]: null });
 
       const token = localStorage.getItem("token");
-      const key = extractKeyFromUrl(resourceUrl);
-      const presignedResponse = await API.get(
-        `/presigned-url/presigned-url?key=${encodeURIComponent(key)}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const signedUrl = presignedResponse.data.url;
-      const response = await fetch(signedUrl);
-      if (!response.ok) throw new Error("Network response was not ok");
+      const response = await API.get(`/courses/verify-access/${courseId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-
-      if (type === "pdf") {
-        setPdfViewerUrl(blobUrl);
-        setPdfError(null);
-        setPageNumber(1);
-      } else if (type === "audio") {
-        setAudioUrl(blobUrl);
-        setShowAudioPlayer(true);
+      if (response.data.hasAccess) {
+        switch (type) {
+          case "pdf":
+            try {
+              // Test if the PDF URL is accessible
+              const testResponse = await fetch(resourceUrl);
+              if (!testResponse.ok) {
+                throw new Error('PDF not accessible');
+              }
+              setPdfViewerUrl(resourceUrl);
+            } catch (error) {
+              console.error('Error loading PDF:', error);
+              updateChapterState(chapterId, 'error', { [type]: 'PDF not accessible' });
+              toast.error('Error loading PDF. Please try again later.');
+            }
+            break;
+          case "audio":
+            setAudioPlayerUrl(resourceUrl);
+            setShowAudioPlayer(true);
+            break;
+          case "video":
+            window.open(resourceUrl, "_blank");
+            break;
+          default:
+            break;
+        }
+        updateChapterState(chapterId, 'loading', { [type]: false });
+      } else {
+        toast.error("You don't have access to this resource");
+        updateChapterState(chapterId, 'error', { [type]: 'Access denied' });
       }
     } catch (error) {
-      console.error("Error opening protected resource:", error);
-      setResourceError(prev => ({ ...prev, [type]: error.message }));
-      if (type === "pdf") {
-        setPdfError(error);
-      }
+      console.error(`Error accessing ${type}:`, error);
+      updateChapterState(chapterId, 'error', { [type]: error.message });
     } finally {
-      setLoadingResource(prev => ({ ...prev, [type]: false }));
+      updateChapterState(chapterId, 'loading', { [type]: false });
     }
   };
 
@@ -400,9 +447,46 @@ const CourseContentDetail = () => {
   }, [courseId, subjectId]);
   const closeAudioPlayer = () => {
     setShowAudioPlayer(false);
-    setAudioUrl(null);
+    setAudioPlayerUrl(null);
   };
 
+  // Update the navigation functions
+  const goToFirstPage = () => {
+    if (pageNumber > 1 && !isRendering) {
+      setPageNumber(1);
+      pdfContentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const goToLastPage = () => {
+    if (numPages && pageNumber < numPages && !isRendering) {
+      setPageNumber(numPages);
+      pdfContentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (pageNumber > 1 && !isRendering) {
+      setPageNumber(prev => prev - 1);
+      pdfContentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const goToNextPage = () => {
+    if (numPages && pageNumber < numPages && !isRendering) {
+      setPageNumber(prev => prev + 1);
+      pdfContentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Add useEffect to handle page number changes
+  useEffect(() => {
+    if (pdfContentRef.current) {
+      pdfContentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [pageNumber]);
+
+  // Update the renderPage function to handle errors better
   const renderPage = async (pdf, pageNum) => {
     try {
       setIsRendering(true);
@@ -413,13 +497,9 @@ const CourseContentDetail = () => {
       const context = canvas.getContext("2d");
       const viewport = page.getViewport({ scale: 1.5 });
 
-      // Handle HiDPI displays
-      const pixelRatio = window.devicePixelRatio || 1;
-      canvas.width = viewport.width * pixelRatio;
-      canvas.height = viewport.height * pixelRatio;
-      canvas.style.width = `${viewport.width}px`;
-      canvas.style.height = `${viewport.height}px`;
-      context.scale(pixelRatio, pixelRatio);
+      // Set canvas dimensions
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
 
       const renderContext = {
         canvasContext: context,
@@ -427,10 +507,11 @@ const CourseContentDetail = () => {
       };
 
       await page.render(renderContext).promise;
-      setIsRendering(false);
     } catch (error) {
       console.error("Error rendering page:", error);
       setPdfError(error);
+      toast.error('Error rendering page. Please try again.');
+    } finally {
       setIsRendering(false);
     }
   };
@@ -440,13 +521,22 @@ const CourseContentDetail = () => {
     if (pdfViewerUrl) {
       const loadPdf = async () => {
         try {
-          const pdf = await pdfjsLib.getDocument(pdfViewerUrl).promise;
+          setIsRendering(true);
+          setPdfError(null);
+          const pdf = await pdfjsLib.getDocument({
+            url: pdfViewerUrl,
+            cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.12.313/cmaps/',
+            cMapPacked: true,
+          }).promise;
           setPdfDoc(pdf);
           setNumPages(pdf.numPages);
           await renderPage(pdf, pageNumber);
         } catch (error) {
           console.error("Error loading PDF:", error);
           setPdfError(error);
+          toast.error('Error loading PDF. Please try again later.');
+        } finally {
+          setIsRendering(false);
         }
       };
       loadPdf();
@@ -501,9 +591,18 @@ const CourseContentDetail = () => {
         >
           <ArrowLeft size={18} /> Back
         </div>
-        <h1 className="text-4xl font-bold text-white text-shadow">
-          {subject.subjectName}
-        </h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-4xl font-bold text-white text-shadow">
+            {subject.subjectName}
+          </h1>
+          {subject.subjectName === "Vision" && (
+            <img 
+              src="https://instructedu.s3.eu-north-1.amazonaws.com/main+logoo.svg" 
+              alt="Vision Logo" 
+              className="h-12 w-auto"
+            />
+          )}
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto mb-8">
@@ -582,20 +681,18 @@ const CourseContentDetail = () => {
                 <div className="space-y-2 bg-gray-800/50 rounded-xl p-4 backdrop-blur-sm border border-white/10">
                   {/* PDF Option */}
                   <div
-                    onClick={() =>
-                      handleOpenProtectedResource(chapter.pdfLink, "pdf")
-                    }
+                    onClick={() => handleOpenProtectedResource(chapter.pdfLink, 'pdf', chapter._id)}
                     className="transform transition-all duration-300 hover:translate-x-2
-                       bg-black/20 rounded-lg cursor-pointer"
+                     bg-black/20 rounded-lg cursor-pointer"
                   >
                     <div className="p-4 hover:bg-white/10 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <FileText className="w-5 h-5" />
-                        <span>Notes PDF</span>
+                        <span>Notes</span>
                       </div>
-                      {loadingResource.pdf ? (
+                      {chapterStates[chapter._id]?.loading?.pdf ? (
                         <Loader size="small" />
-                      ) : resourceError.pdf ? (
+                      ) : chapterStates[chapter._id]?.error?.pdf ? (
                         <span className="text-red-400 text-sm">Not Found</span>
                       ) : (
                         <span className="px-2 py-1 text-sm bg-white/20 rounded-full">
@@ -607,24 +704,22 @@ const CourseContentDetail = () => {
 
                   {/* Audio Option */}
                   <div
-                    onClick={() =>
-                      handleOpenProtectedResource(chapter.audioLink, "audio")
-                    }
+                    onClick={() => handleOpenProtectedResource(chapter.audioLink, 'audio', chapter._id)}
                     className="transform transition-all duration-300 hover:translate-x-2
-                       bg-black/20 rounded-lg cursor-pointer"
+                     bg-black/20 rounded-lg cursor-pointer"
                   >
                     <div className="p-4 hover:bg-white/10 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Music className="w-5 h-5" />
-                        <span>Audio Book</span>
+                        <span>Audio Lecture</span>
                       </div>
-                      {loadingResource.audio ? (
+                      {chapterStates[chapter._id]?.loading?.audio ? (
                         <Loader size="small" />
-                      ) : resourceError.audio ? (
+                      ) : chapterStates[chapter._id]?.error?.audio ? (
                         <span className="text-red-400 text-sm">Not Found</span>
                       ) : (
                         <span className="px-2 py-1 text-sm bg-white/20 rounded-full">
-                          Play
+                          Listen
                         </span>
                       )}
                     </div>
@@ -632,17 +727,18 @@ const CourseContentDetail = () => {
 
                   {/* Video Option */}
                   <div
+                    onClick={() => handleOpenProtectedResource(chapter.videoLink, 'video', chapter._id)}
                     className="transform transition-all duration-300 hover:translate-x-2
-                         bg-black/20 rounded-lg cursor-pointer"
+                     bg-black/20 rounded-lg cursor-pointer"
                   >
                     <div className="p-4 hover:bg-white/10 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <PlayCircle className="w-5 h-5" />
                         <span>Video Lecture</span>
                       </div>
-                      {loadingResource.video ? (
+                      {chapterStates[chapter._id]?.loading?.video ? (
                         <Loader size="small" />
-                      ) : resourceError.video ? (
+                      ) : chapterStates[chapter._id]?.error?.video ? (
                         <span className="text-red-400 text-sm">Not Found</span>
                       ) : (
                         <span className="px-2 py-1 text-sm bg-white/20 rounded-full">
@@ -656,16 +752,16 @@ const CourseContentDetail = () => {
                   <div
                     onClick={() => handleQuizClick(chapter._id)}
                     className="transform transition-all duration-300 hover:translate-x-2
-                         bg-black/20 rounded-lg cursor-pointer"
+                     bg-black/20 rounded-lg cursor-pointer"
                   >
                     <div className="p-4 hover:bg-white/10 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <HelpCircle className="w-5 h-5" />
                         <span>Practice Quiz</span>
                       </div>
-                      {loadingResource.quiz ? (
+                      {chapterStates[chapter._id]?.loading?.quiz ? (
                         <Loader size="small" />
-                      ) : resourceError.quiz ? (
+                      ) : chapterStates[chapter._id]?.error?.quiz ? (
                         <span className="text-red-400 text-sm">Not Found</span>
                       ) : (
                         <div 
@@ -699,40 +795,138 @@ const CourseContentDetail = () => {
           isOpen={true}
           onRequestClose={closePdfViewer}
           contentLabel="PDF Viewer"
-          className="fixed inset-0 flex items-center justify-center z-50 p-4 pt-28 pb-16 overflow-hidden"
+          className="fixed inset-0 z-50 overflow-hidden"
           overlayClassName="fixed inset-0 bg-black bg-opacity-90 z-40"
         >
-          <div className="bg-gray-900 rounded-lg w-full max-w-6xl h-[85vh] flex flex-col p-4 shadow-2xl border border-gray-700">
-            <div className="flex justify-between items-center mb-2 pb-2 border-b border-gray-700">
-              <h2 className="text-xl font-bold text-white">PDF Viewer</h2>
-              <button
-                onClick={closePdfViewer}
-                className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
-              >
-                Close
-              </button>
+          <div className="h-screen w-screen flex flex-col bg-gray-900">
+            {/* Top Bar */}
+            <div className="flex items-center justify-between px-6 py-4 bg-gray-800 border-b border-gray-700">
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-semibold text-white">PDF Viewer</h2>
+                <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <span>Page</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max={numPages || 1}
+                    value={pageNumber}
+                    onChange={(e) => {
+                      const newPage = Math.min(Math.max(1, parseInt(e.target.value) || 1), numPages || 1);
+                      setPageNumber(newPage);
+                    }}
+                    className="w-16 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-center"
+                  />
+                  <span>of {numPages || '?'}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={goToFirstPage}
+                  disabled={pageNumber <= 1 || isRendering}
+                  className="p-2 cursor-pointer text-gray-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="First Page"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={goToPreviousPage}
+                  disabled={pageNumber <= 1 || isRendering}
+                  className="p-2 cursor-pointer text-gray-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Previous Page"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <div
+                  onClick={goToNextPage}
+                  disabled={!numPages || pageNumber >= numPages || isRendering}
+                  className="p-2 cursor-pointer text-gray-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Next Page"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+                <div
+                  onClick={goToLastPage}
+                  disabled={!numPages || pageNumber >= numPages || isRendering}
+                  className="p-2 cursor-pointer text-gray-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Last Page"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                  </svg>
+                </div>
+                <div className="h-6 w-px bg-gray-600 mx-2"></div>
+                <div
+                  onClick={closePdfViewer}
+                  className="px-4 cursor-pointer py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Close
+                </div>
+              </div>
             </div>
 
-            {!pdfDoc && !pdfError ? (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="inline-block w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                  <p className="text-gray-300">Loading PDF document...</p>
-                </div>
+            {/* Floating Action Buttons */}
+            <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-50">
+              <div
+                onClick={goToPreviousPage}
+                disabled={pageNumber <= 1 || isRendering}
+                className="p-3 cursor-pointer bg-gray-800 hover:bg-gray-700 text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-110"
+                title="Previous Page"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
               </div>
-            ) : pdfError ? (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-red-400 p-4 text-center max-w-md">
-                  <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  <p className="text-lg font-semibold">Error loading PDF</p>
-                  <p className="mt-2">{pdfError.message || "Could not load the document. Please try again."}</p>
-                </div>
+              <div
+                onClick={goToNextPage}
+                disabled={!numPages || pageNumber >= numPages || isRendering}
+                className="p-3 cursor-pointer bg-gray-800 hover:bg-gray-700 text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-110"
+                title="Next Page"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </div>
-            ) : (
-              <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="flex-1 overflow-auto relative bg-gray-800 rounded-lg">
+              <div
+                onClick={closePdfViewer}
+                className="p-3 cursor-pointer bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg transition-all hover:scale-110"
+                title="Close PDF Viewer"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+            </div>
+
+            {/* PDF Content Area */}
+            <div className="flex-1 overflow-auto bg-gray-800" ref={pdfContentRef}>
+              {!pdfDoc && !pdfError ? (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="inline-block w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-300">Loading PDF document...</p>
+                  </div>
+                </div>
+              ) : pdfError ? (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-red-400 p-4 text-center max-w-md">
+                    <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <p className="text-lg font-semibold">Error loading PDF</p>
+                    <p className="mt-2">{pdfError.message || "Could not load the document. Please try again."}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative min-h-full p-8">
                   {isRendering && (
                     <div className="absolute inset-0 bg-gray-800 bg-opacity-80 flex items-center justify-center z-10">
                       <div className="flex flex-col items-center">
@@ -741,51 +935,22 @@ const CourseContentDetail = () => {
                       </div>
                     </div>
                   )}
-                  <div className="flex justify-center min-h-full p-4">
+                  <div className="flex justify-center">
                     <canvas
                       ref={canvasRef}
-                      className="border border-gray-700 shadow-lg"
-                      style={{ maxHeight: "100%" }}
+                      className="shadow-2xl"
                     />
                   </div>
                 </div>
-
-                <div className="mt-4 flex items-center justify-center gap-4 p-3 bg-gray-800 rounded-lg">
-                  <button
-                    disabled={pageNumber <= 1 || isRendering}
-                    onClick={() => setPageNumber((prev) => prev - 1)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors flex items-center"
-                  >
-                    <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Previous
-                  </button>
-                  <div className="px-4 py-2 bg-gray-700 rounded-md shadow-sm">
-                    <span className="text-gray-200 font-medium">
-                      Page {pageNumber} of {numPages || '?'}
-                    </span>
-                  </div>
-                  <button
-                    disabled={!numPages || pageNumber >= numPages || isRendering}
-                    onClick={() => setPageNumber((prev) => prev + 1)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors flex items-center"
-                  >
-                    Next
-                    <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </Modal>
       )}
 
 
 
-      {showAudioPlayer && audioUrl && (
+      {showAudioPlayer && audioPlayerUrl && (
         <Modal
           isOpen={true}
           onRequestClose={closeAudioPlayer}
@@ -803,7 +968,7 @@ const CourseContentDetail = () => {
               </svg>
             </button>
 
-            <EnhancedAudioPlayer audioUrl={audioUrl} />
+            <EnhancedAudioPlayer audioUrl={audioPlayerUrl} />
           </div>
         </Modal>
       )}

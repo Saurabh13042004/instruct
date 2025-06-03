@@ -419,8 +419,17 @@ function AdminPage() {
         },
       });
       if (res.data.success) {
+        // Update the chapter field with the new URL
         handleChapterChange(subjIndex, chapIndex, field, res.data.url);
-        toast.success("File uploaded successfully");
+        toast.success(`${field.replace('Link', '')} uploaded successfully`);
+        
+        // Log the updated state for debugging
+        console.log('Updated chapter data:', {
+          subjectIndex: subjIndex,
+          chapterIndex: chapIndex,
+          field,
+          url: res.data.url
+        });
       } else {
         toast.error("File upload failed");
       }
@@ -481,8 +490,18 @@ function AdminPage() {
           .split(",")
           .map((s) => s.trim()),
         languages: courseForm.languages.split(",").map((s) => s.trim()),
-        subjects,
+        subjects: subjects.map(subject => ({
+          ...subject,
+          chapters: subject.chapters.map(chapter => ({
+            ...chapter,
+            pdfLink: chapter.pdfLink || "",
+            audioLink: chapter.audioLink || "",
+            videoLink: chapter.videoLink || "",
+            quizLink: chapter.quizLink || ""
+          }))
+        }))
       };
+
       let response;
       if (editingCourseId) {
         response = await API.put(
@@ -581,7 +600,21 @@ function AdminPage() {
       discountPrice: course.discountPrice,
       promocode: course.promocode || "",
     });
-    setSubjects(course.subjects || []);
+    
+    // Ensure we preserve all chapter data including file URLs
+    const subjectsWithUrls = course.subjects.map(subject => ({
+      ...subject,
+      chapters: subject.chapters.map(chapter => ({
+        ...chapter,
+        pdfLink: chapter.pdfLink || "",
+        audioLink: chapter.audioLink || "",
+        videoLink: chapter.videoLink || "",
+        quizLink: chapter.quizLink || "",
+        chapterName: chapter.chapterName || ""
+      }))
+    }));
+    
+    setSubjects(subjectsWithUrls);
     setEditingCourseId(course._id);
     setCourseViewMode("edit");
   };

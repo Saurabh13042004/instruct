@@ -251,4 +251,30 @@ router.post("/validate-promocode", async (req, res) => {
     }
 });
 
+// Verify course access
+router.get("/verify-access/:courseId", authenticateToken, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Admin always has access
+        if (user.type === "admin") {
+            return res.status(200).json({ hasAccess: true });
+        }
+
+        // Check if user has purchased the course
+        const hasAccess = user.purchasedCourses.includes(req.params.courseId);
+        
+        res.status(200).json({ hasAccess });
+    } catch (error) {
+        console.error("Error verifying course access:", error);
+        res.status(500).json({ 
+            message: "Error verifying course access", 
+            error: error.message 
+        });
+    }
+});
+
 module.exports = router;

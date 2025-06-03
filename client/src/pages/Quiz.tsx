@@ -132,14 +132,42 @@ function Quiz() {
   }, []);
 
   useEffect(() => {
-    if (!quizData) {
-      navigate(-1);
-      return;
-    }
+    const fetchQuizData = async () => {
+      if (!quizData) {
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            navigate('/login');
+            return;
+          }
 
-    setSelectedAnswers(Array(quizData.questions.length).fill(-1));
-    setTimeRemaining(quizData.duration);
-  }, [quizData]);
+          const response = await API.get(`/quiz/chapter/${chapterId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          if (response.data.success && response.data.quizzes.length > 0) {
+            const quiz = response.data.quizzes[0];
+            setSelectedAnswers(Array(quiz.questions.length).fill(-1));
+            setTimeRemaining(quiz.duration);
+            // Update location state with quiz data
+            window.history.replaceState({ ...window.history.state, quiz }, '');
+          } else {
+            toast.error('No quiz found for this chapter');
+            navigate(-1);
+          }
+        } catch (error) {
+          console.error('Error fetching quiz:', error);
+          toast.error('Failed to load quiz');
+          navigate(-1);
+        }
+      } else {
+        setSelectedAnswers(Array(quizData.questions.length).fill(-1));
+        setTimeRemaining(quizData.duration);
+      }
+    };
+
+    fetchQuizData();
+  }, [quizData, chapterId, navigate]);
 
   // Prevent context menu (right-click)
   useEffect(() => {
@@ -163,113 +191,83 @@ function Quiz() {
     };
   }, []);
 
-useEffect(() => {
-  const fetchCourseAndSubjectDetails = async () => {
-    try {
-      // Make sure we have courseId and subjectId
-      if (!quizData?.courseId || !quizData?.subjectId) return;
-      
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      
-      console.log("Fetching course and subject details...");
-      
-      // Use the updated quiz API endpoint that returns courseName and subjectName
-      const response = await API.get(`quiz/course/${quizData.courseId}/subject/${quizData.subjectId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (response.data.success) {
-        // Extract course and subject details from response
-        if (response.data.courseName) {
-          setCourseName(response.data.courseName.courseName);
-          console.log("Set course name:", response.data.courseName.courseName);
-        }
-        
-        if (response.data.subjectName) {
-          setSubjectName(response.data.subjectName.subjectName);
-          console.log("Set subject name:", response.data.subjectName.subjectName);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching course and subject details:", error);
-    }
-  };
+  useEffect(() => {
+    const fetchChapterAndDetails = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
 
-  fetchCourseAndSubjectDetails();
-}, [quizData]);
-
-// Keep the existing fetchChapterName function
-useEffect(() => {
-  const fetchChapterName = async () => {
-    try {
-      // Make sure we have both a chapterId and quizData
-      if (!chapterId || !quizData) return;
-      
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      
-      console.log("Fetching chapter name for chapter ID:", chapterId);
-      
-      // First approach: If quizData already contains courseId and subjectId
-      if (quizData.courseId && quizData.subjectId) {
-        const courseResponse = await API.get(`course/${quizData.courseId}/content`, {
+        // First get the quiz data to get courseId and subjectId
+        const quizResponse = await API.get(`/quiz/chapter/${chapterId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
-        if (courseResponse.data.courseContent) {
-          const subjects = courseResponse.data.courseContent;
-          const subject = subjects.find(s => s._id === quizData.subjectId);
-          
-          if (subject) {
-            setSubjectName(subject.subjectName);
-            const chapter = subject.chapters.find(c => c._id === chapterId);
+
+        if (quizResponse.data.success && quizResponse.data.quizzes.length > 0) {
+          const quiz = quizResponse.data.quizzes[0];
+          const { courseId, subjectId } = quiz;
+
+          // Now fetch course content
+          const courseResponse = await API.get(`/courses/course/${courseId}/content`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          if (courseResponse.data.courseContent) {
+            const subjects = courseResponse.data.courseContent;
+            const subject = subjects.find(s => s._id === subjectId);
             
-            if (chapter) {
-              setChapterName(chapter.chapterName);
-              console.log("Found chapter name:", chapter.chapterName);
-              return;
+            if (subject) {
+              setSubjectName(subject.subjectName);
+              const chapter = subject.chapters.find(c => c._id === chapterId);
+              
+              if (chapter) {
+                setChapterName(chapter.chapterName);
+                console.log("Found chapter name:", chapter.chapterName);
+              }
             }
           }
+
+          // Fetch course name
+          const courseNameResponse = await API.get(`/courses/course/${courseId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          if (courseNameResponse.data.course) {
+            setCourseName(courseNameResponse.data.course.courseName);
+          }
         }
+      } catch (error) {
+        console.error("Error fetching chapter and details:", error);
       }
-      
-      // Second approach: If we don't have course/subject IDs, try fetching quizzes for this chapter
-      const quizResponse = await API.get(`quiz/chapter/${chapterId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (quizResponse.data.success && quizResponse.data.quizzes.length > 0) {
-        // Get courseId and subjectId from the quiz data
-        const { courseId, subjectId } = quizResponse.data.quizzes[0];
-        
-        // Now fetch the course content to get chapter name
-        const courseResponse = await API.get(`course/${courseId}/content`, {
+    };
+
+    if (chapterId) {
+      fetchChapterAndDetails();
+    }
+  }, [chapterId]);
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+
+        const userResponse = await API.get('/user/profile', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
-        if (courseResponse.data.courseContent) {
-          const subjects = courseResponse.data.courseContent;
-          const subject = subjects.find(s => s._id === subjectId);
-          
-          if (subject) {
-            setSubjectName(subject.subjectName);
-            const chapter = subject.chapters.find(c => c._id === chapterId);
-            
-            if (chapter) {
-              setChapterName(chapter.chapterName);
-              console.log("Found chapter name:", chapter.chapterName);
-            }
-          }
+        if (userResponse.data.success) {
+          const user = userResponse.data.user;
+          setUserName(`${user.firstName} ${user.lastName}`);
         }
+      } catch (error) {
+        console.error('Error fetching user details:', error);
       }
-    } catch (error) {
-      console.error("Error fetching chapter name:", error);
-    }
-  };
+    };
 
-  fetchChapterName();
-}, [chapterId, quizData]);
+    fetchUserDetails();
+  }, [navigate]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -406,41 +404,6 @@ useEffect(() => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  useEffect(() => {
-    const fetchUserAndSubjectDetails = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          navigate('/login');
-          return;
-        }
-
-        // Fetch user details
-        const userResponse = await API.get('/user/profile', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (userResponse.data.success) {
-          const user = userResponse.data.user;
-          setUserName(`${user.firstName} ${user.lastName}`);
-        }
-
-        // Fetch subject details
-        if (quizData?.subjectId) {
-          const subjectResponse = await API.get(`/courses/subject/${quizData.subjectId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (subjectResponse.data.success) {
-            setSubjectName(subjectResponse.data.subject.subjectName);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching user or subject details:', error);
-      }
-    };
-
-    fetchUserAndSubjectDetails();
-  }, [quizData]);
-
   const handleReviewQuestion = () => {
     const newReviewed = [...reviewedQuestions];
     newReviewed[currentQuestion] = !newReviewed[currentQuestion];
@@ -492,10 +455,13 @@ useEffect(() => {
               <section>
                 <h3 className="text-lg sm:text-xl font-semibold mb-2">General Information</h3>
                 <ul className="list-disc pl-5 space-y-1 sm:space-y-2 text-sm sm:text-base">
-                  {/* <li>Test Name: <span className="font-medium">{courseName} - {subjectName}</span></li> */}
+                  <li>Test Name: <span className="font-medium">{courseName} - {subjectName}</span></li>
+                  <li> Chapter Name: <span className="font-medium">{chapterName}</span></li>
+                  
                   <li>Duration: <span className="font-medium">30 minutes</span></li>
                   <li>Total Questions: <span className="font-medium">{questions.length}</span></li>
                   <li>Question Type: <span className="font-medium">Multiple Choice Questions (MCQs)</span></li>
+
                 </ul>
               </section>
 
@@ -709,8 +675,8 @@ useEffect(() => {
           </div>
           <div className={`hidden sm:block h-6 border-l ${darkMode ? 'border-gray-600' : 'border-gray-300'}`}></div>
           <div className="hidden sm:block">
-            <p className="text-xs sm:text-sm font-medium">{subjectName}</p>
-            <p className="text-xs text-gray-400">{userName}</p>
+            <p className="text-xs sm:text-sm font-medium">{subjectName} | {chapterName}</p>
+            {/* <p className="text-xs text-gray-400">{userName}</p> */}
           </div>
         </div>
 

@@ -60,25 +60,27 @@ const CourseContent = () => {
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
           {courseName}
         </h1>
-        <img
-          className="h-16 md:h-20"
-          src="/assets/img/slider/1.svg"
-          alt="course banner"
-        />
+        {courseName === "Vision" && (
+          <img
+            className="h-16 md:h-20"
+            src="/assets/img/slider/1.svg"
+            alt="course banner"
+          />
+        )}
+
       </div>
 
       <div className="flex justify-center">
-        <div className={`grid gap-8 ${
-          subjects.length === 1 
+        <div className={`grid gap-8 ${subjects.length === 1
             ? 'grid-cols-1 w-[356px]'
             : subjects.length === 2
               ? 'grid-cols-1 md:grid-cols-2 w-full max-w-[744px]'
               : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 w-full max-w-[1100px]'
-        }`}>
+          }`}>
           {subjects.map((subject, index) => {
             const IconComponent = icons[index % icons.length];
             const gradientClass = gradients[subject.subjectName.toLowerCase()] || gradients.default;
-            
+
             return (
               <a
                 key={index}
@@ -106,7 +108,7 @@ const CourseContent = () => {
                     </p>
                   </div>
 
-                  {subject.chapters.length > 0 && (
+                  {/* {subject.chapters.length > 0 && (
                     <div className="text-sm opacity-75 space-y-1">
                       {subject.chapters.slice(0, 3).map((chapter, idx) => (
                         <p key={idx} className="flex items-center">
@@ -120,11 +122,11 @@ const CourseContent = () => {
                         </p>
                       )}
                     </div>
-                  )}
+                  )} */}
                 </div>
 
                 <div className="absolute inset-0 bg-black/20 pointer-events-none" />
-                </a>
+              </a>
             );
           })}
         </div>
