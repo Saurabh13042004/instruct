@@ -6,16 +6,7 @@ const { uploadToS3, getSignedUrl } = require('../utils/s3Utils');
 exports.createQuiz = async (req, res) => {
   try {
     const { title, courseId, subjectId, chapterId, duration, questions } = JSON.parse(req.body.questions);
-    const questionImages = req.files ? req.files.questionImages : [];
-
-    // Upload question images to S3 if any
-    const uploadedImages = [];
-    if (questionImages.length > 0) {
-      for (const image of questionImages) {
-        const imageUrl = await uploadToS3(image, 'quiz-images');
-        uploadedImages.push(imageUrl);
-      }
-    }
+    // The `questions` array now comes with `imageUrl` and `solution.imageUrl` populated by the route
 
     // Create quiz with solutions
     const quiz = new Quiz({
@@ -24,16 +15,16 @@ exports.createQuiz = async (req, res) => {
       subjectId,
       chapterId,
       duration,
-      questions: questions.map((q, index) => ({
+      questions: questions.map((q) => ({
         question: q.question,
         options: q.options,
         correctAnswer: q.correctAnswer,
-        hasImage: q.hasImage,
-        imageUrl: q.hasImage ? uploadedImages[index] : '',
+        hasImage: q.hasImage || false, // Ensure hasImage is boolean
+        imageUrl: q.imageUrl || '', // Use imageUrl directly from the question object
         solution: {
-          text: q.solution.text || '',
-          videoUrl: q.solution.videoUrl || '',
-          imageUrl: q.solution.imageUrl || ''
+          text: q.solution?.text || '',
+          videoUrl: q.solution?.videoUrl || '',
+          imageUrl: q.solution?.imageUrl || '' // Use solution.imageUrl directly from the question object
         }
       }))
     });

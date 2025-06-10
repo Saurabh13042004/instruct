@@ -1765,12 +1765,12 @@ function AdminPage() {
                             )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <button
+                            <div
                               onClick={() => fetchUserDetails(user._id)}
                               className="text-blue-400 hover:text-blue-500"
                             >
                               View Details
-                            </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -1943,35 +1943,35 @@ function AdminPage() {
         )}
 
         {activeTab === "analytics" && (
-          <div className="bg-gray-800 rounded-lg shadow-md p-6">
+          <div className="bg-gray-800 rounded-lg shadow-md p-8">
             <h2 className="text-xl font-semibold mb-6">User Analytics Dashboard</h2>
 
             {/* Period Selector */}
-            <div className="flex gap-4 mb-8">
-              <button
+            <div className="flex mt-4 gap-4 mb-8">
+              <div
                 onClick={() => setAnalyticsPeriod('daily')}
                 className={`px-4 py-2 rounded-lg ${
                   analyticsPeriod === 'daily' ? 'bg-blue-600' : 'bg-gray-700'
                 }`}
               >
                 Daily
-              </button>
-              <button
+              </div>
+              <div
                 onClick={() => setAnalyticsPeriod('weekly')}
                 className={`px-4 py-2 rounded-lg ${
                   analyticsPeriod === 'weekly' ? 'bg-blue-600' : 'bg-gray-700'
                 }`}
               >
                 Weekly
-              </button>
-              <button
+              </div>
+              <div
                 onClick={() => setAnalyticsPeriod('monthly')}
                 className={`px-4 py-2 rounded-lg ${
                   analyticsPeriod === 'monthly' ? 'bg-blue-600' : 'bg-gray-700'
                 }`}
               >
                 Monthly
-              </button>
+              </div>
             </div>
 
             {/* Stats Overview */}
@@ -2066,12 +2066,12 @@ function AdminPage() {
                         <td className="py-4">{formatDate(user.lastActivity)}</td>
                         <td className="py-4">{user.activityCount}</td>
                         <td className="py-4">
-                          <button
+                          <div
                             onClick={() => fetchUserAnalytics(user.userId)}
                             className="px-3 py-1 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
                           >
                             View Details
-                          </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -2082,7 +2082,7 @@ function AdminPage() {
 
             {/* User Activity Details Modal */}
             {analyticsData.selectedUser && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+              <div className="fixed inset-0 bg-black bg-opacity-50 mt-8 flex items-center justify-center p-8">
                 <div className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto">
                   <div className="p-6">
                     <div className="flex justify-between items-center mb-6">

@@ -39,6 +39,11 @@ interface Question {
   correctAnswer: number;
   hasImage?: boolean;
   imageUrl?: string;
+  solution?: {
+    text?: string;
+    videoUrl?: string;
+    imageUrl?: string;
+  };
 }
 
 function Quiz() {
@@ -52,6 +57,8 @@ function Quiz() {
   const location = useLocation();
   const quizData = location.state?.quiz;
   const questions = quizData?.questions || [];
+
+  console.log("Initial quizData from location.state:", quizData);
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>(Array(questions.length).fill(-1));
@@ -67,6 +74,7 @@ function Quiz() {
   const [loading, setLoading] = useState(false);
   const [chapterName, setChapterName] = useState("");
   const [reviewedQuestions, setReviewedQuestions] = useState<boolean[]>(Array(questions.length).fill(false));
+  const [showSolution, setShowSolution] = useState<boolean[]>(Array(questions.length).fill(false));
 
   usePreventCopy();
   useEffect(() => {
@@ -150,6 +158,7 @@ function Quiz() {
 
           if (response.data.success && response.data.quizzes.length > 0) {
             const quiz = response.data.quizzes[0];
+            console.log("Fetched quiz data from API:", quiz);
             setSelectedAnswers(Array(quiz.questions.length).fill(-1));
             setTimeRemaining(quiz.duration);
             // Update location state with quiz data
@@ -614,7 +623,7 @@ function Quiz() {
           </div>
 
           {/* Subject Tabs */}
-          <div className="flex gap-2 overflow-x-auto pb-2 mb-6">
+          {/* <div className="flex gap-2 overflow-x-auto pb-2 mb-6">
             <div className="px-4 py-2 rounded-full text-sm whitespace-nowrap bg-[#eb9f18] text-black font-medium">
               All Subjects
             </div>
@@ -626,7 +635,7 @@ function Quiz() {
                 {subject}
               </div>
             ))}
-          </div>
+          </div> */}
           
           {/* Stats Cards */}
           <div className="grid grid-cols-2 gap-4 mb-8">
@@ -695,9 +704,9 @@ function Quiz() {
             {Object.entries(subjectQuestions).map(([subject, subjectQs]) => (
               <div key={subject} className="mb-8">
                 <div className="flex justify-center mb-6">
-                  <h3 className="text-xl font-bold text-white px-6 py-2 bg-[#1a2436] rounded-full capitalize">
+                  {/* <h3 className="text-xl font-bold text-white px-6 py-2 bg-[#1a2436] rounded-full capitalize">
                     {subject}
-                  </h3>
+                  </h3> */}
                 </div>
                 <div className="space-y-4">
                   {(subjectQs as any[]).map((question, idx) => {
@@ -744,10 +753,48 @@ function Quiz() {
                                   View More (30 Sec)
                                 </div>
                                 
-                                <div className="text-[#eb9f18] text-sm flex items-center gap-1">
-                                  View Solution <ExternalLink className="h-4 w-4 ml-1" />
+                                <div
+                                  onClick={() => setShowSolution(prev => {
+                                    const newState = [...prev];
+                                    newState[qIndex] = !newState[qIndex];
+                                    return newState;
+                                  })}
+                                  className="text-[#eb9f18] text-sm flex items-center gap-1 hover:text-amber-400 transition-colors"
+                                >
+                                  {showSolution[qIndex] ? 'Hide Solution' : 'View Solution'} <ExternalLink className="h-4 w-4 ml-1" />
                                 </div>
                               </div>
+
+                              {showSolution[qIndex] && (
+                                <div className="mt-6 p-4 bg-gray-800 rounded-lg">
+                                  <h5 className="text-md font-semibold text-white mb-3">Solution:</h5>
+                                  {question.solution?.text && (
+                                    <p className="text-gray-300 mb-2">{question.solution.text}</p>
+                                  )}
+                                  {question.solution?.videoUrl && (
+                                    <div className="aspect-video w-full mb-2">
+                                      <iframe
+                                        src={question.solution.videoUrl.replace("watch?v=", "embed/")}
+                                        title="Solution Video"
+                                        frameBorder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                        className="w-full h-full rounded-md"
+                                      ></iframe>
+                                    </div>
+                                  )}
+                                  {question.solution?.imageUrl && (
+                                    <img 
+                                      src={question.solution.imageUrl}
+                                      alt="Solution Image"
+                                      className="max-w-full h-auto rounded-md"
+                                    />
+                                  )}
+                                  {!question.solution?.text && !question.solution?.videoUrl && !question.solution?.imageUrl && (
+                                    <p className="text-gray-400">No solution provided for this question.</p>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>

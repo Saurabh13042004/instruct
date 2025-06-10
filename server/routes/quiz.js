@@ -3,7 +3,8 @@ const router = express.Router();
 const Quiz = require("../models/Quiz");
 const upload = require("../utils/upload");
 const jwt = require("jsonwebtoken");
-const User = require("../models/User"); // Add this import
+const User = require("../models/User");
+const Course = require("../models/Course"); // Added Course import
 
 // Enhanced authenticateToken middleware
 const authenticateToken = async (req, res, next) => {
@@ -26,22 +27,30 @@ const authenticateToken = async (req, res, next) => {
 router.post(
   "/create",
   authenticateToken,
-  upload.array("questionImages", 50),
+  upload.any(), // Changed to upload.any() to handle all files
   async (req, res) => {
     try {
-      const { title, courseId, subjectId, chapterId, questions, duration } =
-        req.body;
-      const parsedQuestions = JSON.parse(questions);
+      const { title, courseId, subjectId, chapterId, questions, duration } = JSON.parse(req.body.questions);
+      const parsedQuestions = questions; 
 
-      // Map uploaded files to questions
-      if (req.files) {
-        req.files.forEach((file, index) => {
-          if (parsedQuestions[index]) {
-            parsedQuestions[index].hasImage = true;
-            parsedQuestions[index].imageUrl = file.location;
-          }
-        });
-      }
+      const uploadedFiles = req.files || [];
+
+      // Map uploaded files to questions and their solutions based on fieldname
+      const updatedQuestions = parsedQuestions.map((q, index) => {
+        const questionImageFile = uploadedFiles.find(file => file.fieldname === `questionImage_${index}`);
+        if (questionImageFile) {
+          q.hasImage = true;
+          q.imageUrl = questionImageFile.location;
+        }
+
+        const solutionImageFile = uploadedFiles.find(file => file.fieldname === `solutionImage_${index}`);
+        if (solutionImageFile) {
+          if (!q.solution) q.solution = {};
+          q.solution.imageUrl = solutionImageFile.location;
+        }
+
+        return q;
+      });
 
       const quiz = new Quiz({
         title,
@@ -49,7 +58,7 @@ router.post(
         subjectId,
         chapterId,
         duration,
-        questions: parsedQuestions,
+        questions: updatedQuestions,
         createdBy: req.user.id,
       });
 
@@ -86,9 +95,7 @@ router.get(
         courseId: req.params.courseId,
         subjectId: req.params.subjectId,
       });
-      const courseName = await Course.findById(req.params.courseId);
-      const subjectName = await Subject.findById(req.params.subjectId);
-      res.status(200).json({ success: true, quizzes , courseName, subjectName });
+      res.status(200).json({ success: true, quizzes }); 
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }

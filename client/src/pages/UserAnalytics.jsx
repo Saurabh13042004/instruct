@@ -223,12 +223,12 @@ const UserAnalytics = () => {
                     <td className="py-4">{formatDate(user.lastActivity)}</td>
                     <td className="py-4">{user.activityCount}</td>
                     <td className="py-4">
-                      <button
+                      <div
                         onClick={() => fetchUserActivities(user.userId)}
                         className="px-3 py-1 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
                       >
                         View Details
-                      </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

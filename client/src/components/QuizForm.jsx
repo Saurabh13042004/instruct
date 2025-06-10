@@ -17,7 +17,8 @@ const QuizForm = ({ courseId, subjectId, chapterId, initialData, onSuccess }) =>
         solution: {
           text: '',
           videoUrl: '',
-          imageUrl: ''
+          imageUrl: '',
+          imageFile: null
         }
       }
     ]
@@ -61,8 +62,8 @@ const QuizForm = ({ courseId, subjectId, chapterId, initialData, onSuccess }) =>
       formDataToSend.append('chapterId', chapterId);
       formDataToSend.append('duration', formData.duration * 60); // Convert minutes to seconds
       
-      // Add questions with their solutions
-      const questionsWithSolutions = formData.questions.map(q => ({
+      // Prepare questions with their solutions (excluding image files/URLs from JSON)
+      const questionsForBackend = formData.questions.map(q => ({
         question: q.question,
         options: q.options,
         correctAnswer: q.correctAnswer,
@@ -70,15 +71,18 @@ const QuizForm = ({ courseId, subjectId, chapterId, initialData, onSuccess }) =>
         solution: {
           text: q.solution.text,
           videoUrl: q.solution.videoUrl,
-          imageUrl: q.solution.imageUrl
         }
       }));
-      formDataToSend.append('questions', JSON.stringify(questionsWithSolutions));
+      formDataToSend.append('questions', JSON.stringify(questionsForBackend));
       
-      // Add question images
+      // Add question images with indexed field names
       formData.questions.forEach((q, index) => {
         if (q.imageFile) {
-          formDataToSend.append('questionImages', q.imageFile);
+          formDataToSend.append(`questionImage_${index}`, q.imageFile);
+        }
+        // Add solution images with indexed field names
+        if (q.solution?.imageFile) {
+          formDataToSend.append(`solutionImage_${index}`, q.solution.imageFile);
         }
       });
 
@@ -92,10 +96,12 @@ const QuizForm = ({ courseId, subjectId, chapterId, initialData, onSuccess }) =>
       if (response.data.success) {
         toast.success('Quiz created successfully!');
         onSuccess();
+      } else {
+        toast.error(response.data.message || 'Failed to create quiz');
       }
     } catch (error) {
       console.error('Error creating quiz:', error);
-      toast.error('Failed to create quiz');
+      toast.error(error.response?.data?.message || 'Failed to create quiz');
     } finally {
       setLoading(false);
     }
@@ -109,7 +115,12 @@ const QuizForm = ({ courseId, subjectId, chapterId, initialData, onSuccess }) =>
 
   const handleSolutionChange = (questionIndex, field, value) => {
     const newQuestions = [...formData.questions];
-    newQuestions[questionIndex].solution[field] = value;
+    // For imageUrl, store the file object directly for upload
+    if (field === 'imageUrl') {
+      newQuestions[questionIndex].solution.imageFile = value;
+    } else {
+      newQuestions[questionIndex].solution[field] = value;
+    }
     setFormData({ ...formData, questions: newQuestions });
   };
 
@@ -140,7 +151,8 @@ const QuizForm = ({ courseId, subjectId, chapterId, initialData, onSuccess }) =>
           solution: {
             text: '',
             videoUrl: '',
-            imageUrl: ''
+            imageUrl: '',
+            imageFile: null // Add imageFile to solution state
           }
         }
       ]
@@ -267,16 +279,16 @@ const QuizForm = ({ courseId, subjectId, chapterId, initialData, onSuccess }) =>
                       onChange={(e) => {
                         const file = e.target.files[0];
                         if (file) {
-                          handleSolutionChange(qIndex, 'imageUrl', URL.createObjectURL(file));
+                          handleSolutionChange(qIndex, 'imageUrl', file);
                         }
                       }}
                       accept="image/*"
                       className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
-                    {question.solution.imageUrl && (
+                    {question.solution?.imageFile && (
                       <img
-                        src={question.solution.imageUrl}
-                        alt="Solution"
+                        src={URL.createObjectURL(question.solution.imageFile)}
+                        alt="Solution Preview"
                         className="mt-2 max-w-xs rounded-lg"
                       />
                     )}
