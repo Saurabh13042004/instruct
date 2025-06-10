@@ -7,7 +7,7 @@ const Course = require('../models/Course');
 const User = require('../models/User');
 const Transaction = require("../models/Transaction");
 const jwt = require("jsonwebtoken");
-const { sendMail } = require("../utils/mailer"); // Ensure you have a mailer utility
+const { sendMail, getSuccessEmailTemplate } = require("../utils/mailer"); // Ensure you have a mailer utility
 const UserActivity = require("../models/UserActivity");
 const PromoCode = require("../models/PromoCode");
 
@@ -139,9 +139,30 @@ router.post("/verify", authenticateToken, async (req, res) => {
         });
 
         // Update user's course access
-        await User.findByIdAndUpdate(req.user.id, {
+        const user = await User.findByIdAndUpdate(req.user.id, {
             $addToSet: { purchasedCourses: courseId }
-        });
+        }, { new: true }); // Get the updated user object
+
+        // Prepare data for email and send it
+        if (user && course) {
+            const transactionDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            // Assuming CLIENT_URL is defined in your environment variables, e.g., in a .env file
+            const redirectLink = `${process.env.CLIENT_URL}/course/${courseId}/content`;
+
+            await sendMail({
+                to: user.email,
+                subject: "Transaction Successful - Your Course Access is Ready!",
+                templateData: {
+                    userName: user.name || user.email, // Use user's name if available, else email
+                    courseName: course.courseName,
+                    amount: (course.discountPrice || 0).toFixed(2), // Format to 2 decimal places
+                    transactionId: razorpay_payment_id,
+                    date: transactionDate,
+                    paymentMethod: "Razorpay", // Placeholder, actual method might be in Razorpay response
+                    redirectLink: redirectLink
+                }
+            });
+        }
 
         res.status(200).json({
             success: true,

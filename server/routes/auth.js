@@ -93,36 +93,273 @@ router.post("/register", async (req, res) => {
             subject: "Verify Your Phone Number - Instruct",
             text: `Your OTP for Instruct registration is: ${otp}. Valid for 10 minutes.`,
             html: `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Verify Your Phone</title>
-                <style>
-                    /* Your email styles */
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="email-wrapper">
-                        <div class="header">
-                            <div class="welcome-icon">
-                                <svg width="40" height="40" viewBox="0 0 24 24" fill="#ffffff">
-                                    <path d="M12 3L1 9L12 15L21 10.09V17H23V9M5 13.18V17.18L12 21L19 17.18V13.18L12 17L5 13.18Z"/>
-                                </svg>
-                            </div>
-                        </div>
-                        
-                        <div class="content">
-                            <h1>Complete Your Registration</h1>
-                            <p>Your verification code is: <strong>${otp}</strong></p>
-                            <p>This code will expire in 10 minutes.</p>
-                        </div>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Verification</title>
+    <style>
+        :root {
+            --primary-color: #eb9f18;
+            --secondary-color: #b16901;
+            --text-primary: #c6c6c4;
+            --text-secondary: #8a8a89;
+            --dark-bg: #0a0a0a;
+            --card-bg: #141414;
+        }
+        
+        body {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(145deg, var(--dark-bg), #000000);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .email-wrapper {
+            background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #000000 0%, #282828 50%, #0a0a0a 100%);
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.3) 100%);
+        }
+
+        .logo {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 20px;
+        }
+
+        .logo img {
+            width: 180px;
+            height: auto;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+        }
+
+        .content {
+            padding: 40px;
+            background-color: var(--card-bg);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 28px;
+            margin: 0 0 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .welcome-text {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .otp-container {
+            background: linear-gradient(145deg, #1c1c1c, #0f0f0f);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .otp-title {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+
+        .otp-code {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: 8px;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 20px 0;
+        }
+
+        .timer {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .timer-icon {
+            width: 16px;
+            height: 16px;
+            fill: var(--text-secondary);
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--primary-color), transparent);
+            margin: 30px 0;
+            opacity: 0.2;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(235, 159, 24, 0.2);
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(235, 159, 24, 0.3);
+        }
+
+        .security-notice {
+            background: rgba(235, 159, 24, 0.05);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin: 30px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(to bottom, #141414, #0a0a0a);
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .social-links {
+            margin: 20px 0;
+            display: inline-flex
+
+        }
+
+      
+        .social-icon {
+            display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    margin: 0 10px;
+    width: 36px;
+    height: 36px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
+            padding: 8px;
+            transition: all 0.3s ease;
+            opacity: 0.8;
+        }
+
+        .social-icon:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        @media only screen and (max-width: 480px) {
+            .container { padding: 20px 10px; }
+            .content { padding: 20px; }
+            .otp-code { font-size: 28px; letter-spacing: 6px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="email-wrapper">
+            <div class="header">
+                <div class="logo">
+                    <img src="https://instructedu.s3.eu-north-1.amazonaws.com/assets/mail+header.svg" alt="Instruct">
+                </div>
+            </div>
+            
+            <div class="content">
+                <h1>Verify Your Account</h1>
+                <p class="welcome-text">Welcome to Instruct! We're excited to have you join our learning community.</p>
+                
+                <div class="otp-container">
+                    <div class="otp-title">Your Verification Code</div>
+                    <div class="otp-code">${otp}</div>
+                    <div class="timer">
+                        <svg class="timer-icon" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12.5,7H11V13L16.2,16.2L17,14.9L12.5,12.2V7Z"/>
+                        </svg>
+                        Valid for 10 minutes
                     </div>
                 </div>
-            </body>
-            </html>`,
+
+                <div class="security-notice">
+                    <strong>Security Notice:</strong> Never share this code with anyone. Our team will never ask for your verification code.
+                </div>
+
+                <div style="text-align: center;">
+                    <a href="#" class="button">Complete Verification</a>
+                </div>
+
+                <div class="divider"></div>
+
+                <p style="color: var(--text-secondary); font-size: 14px; text-align: center;">
+                    If you didn't request this verification, please ignore this email or contact our support team.
+                </p>
+            </div>
+
+            <div class="footer">
+                <div class="social-links">
+                    <a href="https://t.me/instructedu" class="social-icon">
+                        <img src="https://instructedu.s3.eu-north-1.amazonaws.com/assets/tele.svg.svg" alt="Telegram">
+                    </a>
+                    <a href="https://www.youtube.com/@Instruct-edu?sub_confirmation=1" class="social-icon">
+                        <img src="https://instructedu.s3.eu-north-1.amazonaws.com/assets/yt+(2).svg" alt="Youtube">
+                    </a>
+                    <a href="https://whatsapp.com/channel/0029VapAEFwIt5rn5nNfnx05" class="social-icon">
+                        <img src="https://instructedu.s3.eu-north-1.amazonaws.com/assets/whatsapp.svg" alt="Whatsapp">
+                    </a>
+                </div>
+                <p>&copy; 2025 Instruct. All rights reserved.</p>
+                <p>This is an automated message. Please do not reply.</p>
+                <li><a href="terms.html">Terms & Conditions</a></li>
+                      <li><a href="privacy.policy.html">Privacy Policy</a></li>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
         }).catch((err) => console.error("Error sending OTP email:", err));
 
         res.status(200).json({
@@ -621,13 +858,274 @@ router.post("/send-login-otp", async (req, res) => {
             subject: "Login Verification Code - Instruct",
             text: `Your OTP for Instruct login is: ${otp}. Valid for 10 minutes.`,
             html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2>Login Verification</h2>
-          <p>Your verification code for phone login is: <strong>${otp}</strong></p>
-          <p>This code will expire in 10 minutes.</p>
-          <p>If you didn't try to log in, please secure your account.</p>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Verification</title>
+    <style>
+        :root {
+            --primary-color: #eb9f18;
+            --secondary-color: #b16901;
+            --text-primary: #c6c6c4;
+            --text-secondary: #8a8a89;
+            --dark-bg: #0a0a0a;
+            --card-bg: #141414;
+        }
+        
+        body {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(145deg, var(--dark-bg), #000000);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .email-wrapper {
+            background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #000000 0%, #282828 50%, #0a0a0a 100%);
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.3) 100%);
+        }
+
+        .logo {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 20px;
+        }
+
+        .logo img {
+            width: 180px;
+            height: auto;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+        }
+
+        .content {
+            padding: 40px;
+            background-color: var(--card-bg);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 28px;
+            margin: 0 0 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .welcome-text {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .otp-container {
+            background: linear-gradient(145deg, #1c1c1c, #0f0f0f);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .otp-title {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+
+        .otp-code {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: 8px;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 20px 0;
+        }
+
+        .timer {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .timer-icon {
+            width: 16px;
+            height: 16px;
+            fill: var(--text-secondary);
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--primary-color), transparent);
+            margin: 30px 0;
+            opacity: 0.2;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(235, 159, 24, 0.2);
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(235, 159, 24, 0.3);
+        }
+
+        .security-notice {
+            background: rgba(235, 159, 24, 0.05);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin: 30px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(to bottom, #141414, #0a0a0a);
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .social-links {
+            margin: 20px 0;
+            display: inline-flex
+
+        }
+
+      
+        .social-icon {
+            display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    margin: 0 10px;
+    width: 36px;
+    height: 36px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
+            padding: 8px;
+            transition: all 0.3s ease;
+            opacity: 0.8;
+        }
+
+        .social-icon:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        @media only screen and (max-width: 480px) {
+            .container { padding: 20px 10px; }
+            .content { padding: 20px; }
+            .otp-code { font-size: 28px; letter-spacing: 6px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="email-wrapper">
+            <div class="header">
+                <div class="logo">
+                    <img src="https://instructedu.s3.eu-north-1.amazonaws.com/assets/mail+header.svg" alt="Instruct">
+                </div>
+            </div>
+            
+            <div class="content">
+                <h1>Verify Your Account</h1>
+                <p class="welcome-text">Welcome to Instruct! We're excited to have you join our learning community.</p>
+                
+                <div class="otp-container">
+                    <div class="otp-title">Your Verification Code</div>
+                    <div class="otp-code">${otp}</div>
+                    <div class="timer">
+                        <svg class="timer-icon" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12.5,7H11V13L16.2,16.2L17,14.9L12.5,12.2V7Z"/>
+                        </svg>
+                        Valid for 10 minutes
+                    </div>
+                </div>
+
+                <div class="security-notice">
+                    <strong>Security Notice:</strong> Never share this code with anyone. Our team will never ask for your verification code.
+                </div>
+
+                <div style="text-align: center;">
+                    <a href="#" class="button">Complete Verification</a>
+                </div>
+
+                <div class="divider"></div>
+
+                <p style="color: var(--text-secondary); font-size: 14px; text-align: center;">
+                    If you didn't request this verification, please ignore this email or contact our support team.
+                </p>
+            </div>
+
+            <div class="footer">
+                <div class="social-links">
+                    <a href="https://t.me/instructedu" class="social-icon">
+                        <img src="https://instructedu.s3.eu-north-1.amazonaws.com/assets/tele.svg.svg" alt="Telegram">
+                    </a>
+                    <a href="https://www.youtube.com/@Instruct-edu?sub_confirmation=1" class="social-icon">
+                        <img src="https://instructedu.s3.eu-north-1.amazonaws.com/assets/yt+(2).svg" alt="Youtube">
+                    </a>
+                    <a href="https://whatsapp.com/channel/0029VapAEFwIt5rn5nNfnx05" class="social-icon">
+                        <img src="https://instructedu.s3.eu-north-1.amazonaws.com/assets/whatsapp.svg" alt="Whatsapp">
+                    </a>
+                </div>
+                <p>&copy; 2025 Instruct. All rights reserved.</p>
+                <p>This is an automated message. Please do not reply.</p>
+                <li><a href="terms.html">Terms & Conditions</a></li>
+                      <li><a href="privacy.policy.html">Privacy Policy</a></li>
+            </div>
         </div>
-        `
+    </div>
+</body>
+</html>`
+        
         }).catch(err => console.error("Error sending login OTP email:", err));
 
         res.json({
