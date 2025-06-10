@@ -25,6 +25,11 @@ app.use(bodyParser.json());
 
 app.use(passport.initialize());
 
+
+
+app.get("/api",(req,res)=>{
+  res.status(200).json({message:'Server is working'})
+});
 // Routes
 app.use("/api/auth", authRoutes);
 app.use('/api/payment', paymentRoutes);
