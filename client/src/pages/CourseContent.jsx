@@ -48,7 +48,7 @@ const CourseContent = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-black">
+      <div className="min-h-screen w-[98vw] flex items-center justify-center bg-black">
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 border-4 border-[#eb9f18] border-t-transparent rounded-full animate-spin"></div>
           <p className="text-white text-lg">Loading courses...</p>

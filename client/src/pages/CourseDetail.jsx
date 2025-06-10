@@ -367,7 +367,7 @@ const reviewSection = `
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen w-[98vw] flex items-center justify-center">
         <Loader size="large" />
       </div>
     );

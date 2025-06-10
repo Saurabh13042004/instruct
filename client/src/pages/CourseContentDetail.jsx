@@ -566,7 +566,7 @@ const CourseContentDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-gray-900">
+      <div className="min-h-screen w-[98vw] flex items-center justify-center bg-gray-900">
         <Loader size="large" />
       </div>
     );
@@ -574,7 +574,7 @@ const CourseContentDetail = () => {
 
   if (!subject) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-gray-900">
+      <div className="min-h-screen w-[98vw] flex items-center justify-center bg-gray-900">
         <p className="text-white text-xl">Subject not found.</p>
       </div>
     );
