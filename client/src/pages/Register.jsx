@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import API from "../../api";
 import { useNavigate, Link } from "react-router-dom";
-import { Mail, Lock, UserPlus, User, Calendar, Phone, CheckCircle } from "lucide-react";
+import { Mail, Lock, UserPlus, User, Calendar, Phone, CheckCircle, X } from "lucide-react";
 import toast from 'react-hot-toast';
 
 function Register() {
@@ -140,12 +140,12 @@ function Register() {
   const renderRegistrationForm = () => (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Name fields */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-gray-300 mb-2">First Name</label>
-          <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-              <User size={20} className="text-gray-500" />
+          <label htmlFor="firstName" className="block text-sm font-medium text-gray-300 mb-1.5">First Name</label>
+          <div className="relative flex items-center">
+            <div className="absolute left-3 pointer-events-none">
+              <User size={18} className="text-gray-500" />
             </div>
             <input
               type="text"
@@ -153,20 +153,21 @@ function Register() {
               name="firstName"
               onChange={handleChange}
               value={form.firstName}
-              className="w-full pl-12 pr-4 py-3 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
-                     focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500
-                     placeholder-gray-500 transition-all duration-200 text-base"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
+                       focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500
+                       placeholder-gray-500 transition-all duration-200"
               placeholder="First name"
               required
+              style={{ textIndent: "30px" }}
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="lastName" className="block text-sm font-medium text-gray-300 mb-2">Last Name</label>
-          <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-              <User size={20} className="text-gray-500" />
+          <label htmlFor="lastName" className="block text-sm font-medium text-gray-300 mb-1.5">Last Name</label>
+          <div className="relative flex items-center">
+            <div className="absolute left-3 pointer-events-none">
+              <User size={18} className="text-gray-500" />
             </div>
             <input
               type="text"
@@ -174,23 +175,24 @@ function Register() {
               name="lastName"
               onChange={handleChange}
               value={form.lastName}
-              className="w-full pl-12 pr-4 py-3 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
-                     focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500
-                     placeholder-gray-500 transition-all duration-200 text-base"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
+                       focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500
+                       placeholder-gray-500 transition-all duration-200"
               placeholder="Last name"
               required
+              style={{ textIndent: "30px" }}
             />
           </div>
         </div>
       </div>
 
       {/* Email and Phone */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
-          <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-              <Mail size={20} className="text-gray-500" />
+          <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1.5">Email Address</label>
+          <div className="relative flex items-center">
+            <div className="absolute left-3 pointer-events-none">
+              <Mail size={18} className="text-gray-500" />
             </div>
             <input
               type="email"
@@ -198,20 +200,21 @@ function Register() {
               name="email"
               onChange={handleChange}
               value={form.email}
-              className="w-full pl-12 pr-4 py-3 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
-                     focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500
-                     placeholder-gray-500 transition-all duration-200 text-base"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
+                       focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500
+                       placeholder-gray-500 transition-all duration-200"
               placeholder="Email address"
               required
+              style={{ textIndent: "30px" }}
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
-          <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-              <Phone size={20} className="text-gray-500" />
+          <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-300 mb-1.5">Phone Number</label>
+          <div className="relative flex items-center">
+            <div className="absolute left-3 pointer-events-none">
+              <Phone size={18} className="text-gray-500" />
             </div>
             <input
               type="tel"
@@ -219,23 +222,24 @@ function Register() {
               name="phoneNumber"
               onChange={handleChange}
               value={form.phoneNumber}
-              className="w-full pl-12 pr-4 py-3 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
-                     focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500
-                     placeholder-gray-500 transition-all duration-200 text-base"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
+                       focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500
+                       placeholder-gray-500 transition-all duration-200"
               placeholder="Phone number"
               required
+              style={{ textIndent: "30px" }}
             />
           </div>
         </div>
       </div>
 
       {/* Date of Birth and Password */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div>
-          <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-300 mb-2">Date of Birth</label>
-          <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-              <Calendar size={20} className="text-gray-500" />
+          <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-300 mb-1.5">Date of Birth</label>
+          <div className="relative flex items-center">
+            <div className="absolute left-3 pointer-events-none">
+              <Calendar size={18} className="text-gray-500" />
             </div>
             <input
               type="date"
@@ -243,19 +247,20 @@ function Register() {
               name="dateOfBirth"
               onChange={handleChange}
               value={form.dateOfBirth}
-              className="w-full pl-12 pr-4 py-3 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
-                     focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500
-                     placeholder-gray-500 transition-all duration-200 text-base"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
+                       focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500
+                       placeholder-gray-500 transition-all duration-200"
               required
+              style={{ textIndent: "30px" }}
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">Password</label>
-          <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-              <Lock size={20} className="text-gray-500" />
+          <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1.5">Password</label>
+          <div className="relative flex items-center">
+            <div className="absolute left-3 pointer-events-none">
+              <Lock size={18} className="text-gray-500" />
             </div>
             <input
               type="password"
@@ -263,11 +268,12 @@ function Register() {
               name="password"
               onChange={handleChange}
               value={form.password}
-              className="w-full pl-12 pr-4 py-3 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
-                     focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500
-                     placeholder-gray-500 transition-all duration-200 text-base"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
+                       focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500
+                       placeholder-gray-500 transition-all duration-200"
               placeholder="Create password"
               required
+              style={{ textIndent: "30px" }}
             />
           </div>
         </div>
@@ -275,10 +281,10 @@ function Register() {
 
       {/* Confirm Password */}
       <div>
-        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
-        <div className="relative">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-            <Lock size={20} className="text-gray-500" />
+        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-1.5">Confirm Password</label>
+        <div className="relative flex items-center">
+          <div className="absolute left-3 pointer-events-none">
+            <Lock size={18} className="text-gray-500" />
           </div>
           <input
             type="password"
@@ -286,11 +292,12 @@ function Register() {
             name="confirmPassword"
             onChange={handleChange}
             value={form.confirmPassword}
-            className="w-full pl-12 pr-4 py-3 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
-                   focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500
-                   placeholder-gray-500 transition-all duration-200 text-base"
+            className="w-full pl-10 pr-4 py-2.5 bg-gray-800/90 border border-gray-700 text-gray-100 rounded-xl
+                     focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500
+                     placeholder-gray-500 transition-all duration-200"
             placeholder="Confirm password"
             required
+            style={{ textIndent: "30px" }}
           />
         </div>
       </div>
@@ -299,8 +306,8 @@ function Register() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 text-white text-base font-semibold
-                   rounded-xl transition-all duration-200
+          className="w-full py-2.5 text-white text-sm font-semibold
+                   rounded-[40px] transition-all duration-200
                    focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed
                    flex items-center justify-center gap-2"
           style={{
@@ -308,10 +315,10 @@ function Register() {
           }}
         >
           {isLoading ? (
-            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
             <>
-              <UserPlus size={20} />
+              <UserPlus size={18} />
               Create Account
             </>
           )}
@@ -342,7 +349,7 @@ function Register() {
           name="otp"
           onChange={(e) => setOtp(e.target.value)}
           value={otp}
-          className="w-full px-4 py-3 bg-gray-800/90 border border-gray-700 text-gray-100 text-center text-2xl tracking-widest rounded-xl 
+          className="w-full px-4 py-2.5 bg-gray-800/90 border border-gray-700 text-gray-100 text-center text-2xl tracking-widest rounded-xl 
                    focus:outline-none focus:ring-2 focus:ring-amber-500/70 focus:border-amber-500 transition-all duration-200"
           placeholder="Enter 6-digit OTP"
           maxLength={6}
@@ -354,8 +361,8 @@ function Register() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 text-white text-base font-semibold
-                   rounded-xl transition-all duration-200
+          className="w-full py-2.5 text-white text-sm font-semibold
+                   rounded-[40px] transition-all duration-200
                    focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed
                    flex items-center justify-center gap-2"
           style={{
@@ -363,10 +370,10 @@ function Register() {
           }}
         >
           {isLoading ? (
-            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
             <>
-              <CheckCircle size={20} />
+              <CheckCircle size={18} />
               Verify OTP
             </>
           )}
@@ -390,8 +397,17 @@ function Register() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl mx-auto overflow-y-auto max-h-[90vh]">
-        <div className="relative p-8 rounded-2xl shadow-2xl border border-gray-800 backdrop-filter backdrop-blur-sm bg-gray-900/60">
+      <div className="w-full max-w-md mx-auto overflow-y-auto max-h-[90vh]">
+        <div className="w-full max-w-md mx-auto overflow-hidden bg-dark rounded-2xl shadow-[0_0_25px_5px_rgba(76,29,149,0.15)] relative">
+          {/* Close Button */}
+          <button
+            onClick={() => navigate('/')}
+            className="absolute top-4 right-4 z-50 text-gray-400 hover:text-gray-300 bg-transparent border-none"
+            style={{ cursor: "pointer" }}
+          >
+            <X size={20} />
+          </button>
+
           {/* Floating Particles */}
           <div className="absolute inset-0 overflow-hidden">
             {particles.map(particle => (
@@ -412,21 +428,26 @@ function Register() {
           </div>
           
           <div className="relative">
-            <div className="text-center mb-8">
-              <div className="w-20 h-20 bg-gradient-to-br from-amber-500 to-amber-800 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <UserPlus size={36} className="text-gray-100" />
+            {/* Decorative Elements */}
+            <div className="absolute inset-0 transform rotate-12 rounded-3xl" />
+            
+            <div className="relative p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-800 backdrop-filter backdrop-blur-sm bg-gray-900/60">
+              <div className="mb-8 text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-800 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <UserPlus size={32} className="text-gray-100" />
+                </div>
+                <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600">
+                  {step === 1 ? "Create Account" : "Verify Your Phone"}
+                </h1>
+                <p className="text-gray-400 mt-2">
+                  {step === 1
+                    ? "Join us and start your learning journey"
+                    : "We've sent a verification code to your phone number"}
+                </p>
               </div>
-              <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600">
-                {step === 1 ? "Create Account" : "Verify Your Phone"}
-              </h1>
-              <p className="text-gray-400 mt-2">
-                {step === 1
-                  ? "Join us and start your learning journey"
-                  : "We've sent a verification code to your phone number"}
-              </p>
-            </div>
 
-            {step === 1 ? renderRegistrationForm() : renderOTPVerificationForm()}
+              {step === 1 ? renderRegistrationForm() : renderOTPVerificationForm()}
+            </div>
           </div>
         </div>
       </div>

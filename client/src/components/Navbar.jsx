@@ -36,6 +36,18 @@ function Navbar() {
     setIsLoggedIn(!!token);
   }, []);
 
+  // Add event listener for opening login modal
+  useEffect(() => {
+    const handleOpenLoginModal = () => {
+      setShowLoginModal(true);
+    };
+
+    window.addEventListener('openLoginModal', handleOpenLoginModal);
+    return () => {
+      window.removeEventListener('openLoginModal', handleOpenLoginModal);
+    };
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -385,13 +397,13 @@ function Navbar() {
         contentLabel="Login Modal"
       >
         <div className="relative max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-2xl">
-          <button
+          {/* <button
             onClick={() => setShowLoginModal(false)}
             className="sticky top-4 right-4 z-50 float-right text-gray-400 hover:text-gray-300 bg-transparent border-none"
             style={{ cursor: "pointer" }}
           >
             <X size={20} />
-          </button>
+          </button> */}
           <Login
             onSuccess={handleLoginSuccess}
             onRegisterClick={() => {
@@ -410,13 +422,13 @@ function Navbar() {
         contentLabel="Register Modal"
       >
         <div className="relative">
-          <button
+          {/* <div
             onClick={() => setShowRegisterModal(false)}
             className="absolute top-4 right-4 z-50 text-gray-400 hover:text-gray-300 bg-transparent border-none"
             style={{ cursor: "pointer" }}
           >
             <X size={20} />
-          </button>
+          </div> */}
           <Register />
         </div>
       </Modal>

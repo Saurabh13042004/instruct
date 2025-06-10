@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import API from "../../../api";
 import { useNavigate, Link } from "react-router-dom";
-import { Mail, Lock, LogIn, User, Phone, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, LogIn, User, Phone, ArrowLeft, Eye, EyeOff, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 function Login({ onSuccess, onRegisterClick }) {
@@ -199,6 +199,15 @@ function Login({ onSuccess, onRegisterClick }) {
 
   return (
     <div className="w-full max-w-md mx-auto overflow-hidden bg-dark rounded-2xl shadow-[0_0_25px_5px_rgba(76,29,149,0.15)] relative">
+      {/* Close Button */}
+      <button
+        onClick={() => onSuccess?.()}
+        className="absolute top-4 right-4 z-50 text-gray-400 hover:text-gray-300 bg-transparent border-none"
+        style={{ cursor: "pointer" }}
+      >
+        <X size={20} />
+      </button>
+
       {/* Floating Particles */}
       <div className="absolute inset-0 overflow-hidden">
         {particles.map(particle => (

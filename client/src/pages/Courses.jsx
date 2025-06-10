@@ -55,6 +55,17 @@ function Courses() {
   // Display courses depending on active tab
   const displayCourses = activeTab === "all" ? courses : myCourses;
 
+  if (loading) {
+    return (
+      <div className="min-h-screen w-[98vw] flex items-center justify-center bg-black">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 border-4 border-[#eb9f18] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-white text-lg">Loading courses...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-[98vw]">
       <section className="feature-course pt-150 pb-130 pt-md-95 pb-md-80 pt-xs-95 pb-xs-80">

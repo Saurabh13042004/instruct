@@ -28,9 +28,9 @@ function CourseDetail() {
 
   const [purchased, setPurchased] = useState(false);
   const [rating, setRating] = useState(0);
-const [feedback, setFeedback] = useState('');
-const [reviews, setReviews] = useState([]);
-const [hoveredRating, setHoveredRating] = useState(0);
+  const [feedback, setFeedback] = useState('');
+  const [reviews, setReviews] = useState([]);
+  const [hoveredRating, setHoveredRating] = useState(0);
 
   // New states for promocode functionality.
   const [promoCode, setPromoCode] = useState("");
@@ -48,7 +48,9 @@ const [hoveredRating, setHoveredRating] = useState(0);
       const token = localStorage.getItem("token");
       if (!token) {
         toast.error("Please login to purchase the course.");
-        navigate("/login");
+        // Instead of navigating, dispatch a custom event to open login modal
+        const event = new CustomEvent('openLoginModal');
+        window.dispatchEvent(event);
         return;
       }
 
